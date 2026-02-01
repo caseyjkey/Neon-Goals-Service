@@ -10,13 +10,17 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { GoalsService } from './goals.service';
+import { ScraperService } from '../scraper/scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('goals')
 @UseGuards(JwtAuthGuard)
 export class GoalsController {
-  constructor(private goalsService: GoalsService) {}
+  constructor(
+    private goalsService: GoalsService,
+    private scraperService: ScraperService,
+  ) {}
 
   @Get()
   async findAll(
@@ -162,5 +166,42 @@ export class GoalsController {
     @CurrentUser('userId') userId: string,
   ) {
     return this.goalsService.getDeniedCandidates(goalId, userId);
+  }
+
+  /**
+   * Refresh product candidates for an item goal
+   * Queues a scraping job (camoufox → browser-use fallback)
+   */
+  @Post(':id/refresh-candidates')
+  async refreshCandidates(
+    @Param('id') goalId: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    // Verify goal exists and belongs to user
+    const goal = await this.goalsService.findOne(goalId, userId);
+
+    if (goal.type !== 'item') {
+      throw new Error('Can only refresh candidates for item goals');
+    }
+
+    // Queue scraping job - will be processed by cron worker
+    await this.scraperService.queueCandidateAcquisition(goalId);
+
+    return {
+      message: 'Scraping job queued successfully',
+      goalId,
+      note: 'Candidates will be updated within 2 minutes',
+    };
+  }
+
+  /**
+   * Get scrape jobs for a goal (for polling status)
+   */
+  @Get(':id/scrape-jobs')
+  async getScrapeJobs(
+    @Param('id') goalId: string,
+    @CurrentUser('userId') userId: string,
+  ) {
+    return this.goalsService.getScrapeJobs(goalId, userId);
   }
 }

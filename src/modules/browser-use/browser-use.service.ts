@@ -272,7 +272,7 @@ export class BrowserUseService {
           retailerName: bestResult.retailer,
           retailerUrl: bestResult.productUrl,
           productImage: bestResult.imageUrl,
-          statusBadge: bestResult.inStock ? ('in-stock' as any) : ('pending-search' as any),
+          statusBadge: bestResult.inStock ? 'in_stock' : 'pending_search',
           searchResults: results as any,
         },
       });

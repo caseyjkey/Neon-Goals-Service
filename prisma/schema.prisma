@@ -94,7 +94,7 @@ model ItemGoalData {
   goalId           String               @unique
   goal             Goal                 @relation(fields: [goalId], references: [id], onDelete: Cascade)
 
-  productImage     String
+  productImage     String?
   bestPrice        Float
   currency         String               @default("USD")
   retailerUrl      String
@@ -110,9 +110,17 @@ model ItemGoalData {
   // Item category for specialized handling
   category         ItemCategory?
 
+  // Generic search preferences/filters for ALL categories
+  // Vehicles: { make?, model?, year?, trims?: string[], series?, colors?: string[], ... }
+  // Technology: { brands?: string[], minRam?, minStorage?, screenSize?, ... }
+  // Furniture: { brands?: string[], colors?: string[], material?, ... }
+  // UI displays these to user, scrapers use to refine searches
+  searchFilters     Json?
+
   // Candidate stack for Tinder-style swiping (array of ProductCandidate objects)
   candidates           Json?  // Active candidates user can swipe through
   selectedCandidateId  String?
+  shortlistedCandidates Json?  // Full ProductCandidate objects user swiped right on (The Shortlist/Bench)
   deniedCandidates     Json?  // Full ProductCandidate objects user swiped left on
 
   // Card stacking support (for grouping related goals created by scraper)
@@ -249,6 +257,8 @@ enum ItemStatusBadge {
   in_stock
   price_drop
   pending_search
+  not_found       // Searched but no results found
+  not_supported   // Category doesn't have a scraper yet
 }
 
 // Item categories for specialized scraping/handling

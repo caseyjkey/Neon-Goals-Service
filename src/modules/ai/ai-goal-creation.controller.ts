@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { AiGoalCreationService } from './ai-goal-creation.service';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from '../../config/prisma.service';
+import { ScraperService } from '../scraper/scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -12,6 +13,7 @@ export class AiGoalCreationController {
   constructor(
     private aiGoalCreationService: AiGoalCreationService,
     private prisma: PrismaService,
+    private scraperService: ScraperService,
   ) {}
 
   /**
@@ -167,7 +169,7 @@ export class AiGoalCreationController {
 
     // For item/finance goals, create with minimal defaults
     if (type === 'item') {
-      return this.prisma.goal.create({
+      const goal = await this.prisma.goal.create({
         data: {
           type: 'item',
           title,
@@ -177,7 +179,7 @@ export class AiGoalCreationController {
           userId,
           itemData: {
             create: {
-              productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+              productImage: null,
               bestPrice: data.budget || 0,
               currency: 'USD',
               retailerUrl: '',
@@ -192,6 +194,11 @@ export class AiGoalCreationController {
           itemData: true,
         },
       });
+
+      // Queue scraping job - scraper service will determine if scrapers exist for this category
+      await this.scraperService.queueCandidateAcquisition(goal.id);
+
+      return goal;
     }
 
     if (type === 'finance') {
@@ -248,7 +255,7 @@ export class AiGoalCreationController {
           title: parentGoalId,
           userId,
           status: 'active',
-          parentGoalId: null, // Only match top-level goals
+          // Remove parentGoalId: null filter to allow subgoals as parents
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -260,7 +267,7 @@ export class AiGoalCreationController {
         where: {
           userId,
           status: 'active',
-          parentGoalId: null,
+          // Show all active goals, not just top-level
         },
         select: {
           id: true,
@@ -272,7 +279,7 @@ export class AiGoalCreationController {
 
       throw new Error(
         `Parent goal not found: "${parentGoalId}"\n\n` +
-        `Available top-level goals:\n${goalList}\n\n` +
+        `Available goals:\n${goalList}\n\n` +
         `Tip: Use the goal's title or exact ID as parentGoalId`
       );
     }
@@ -302,7 +309,7 @@ export class AiGoalCreationController {
 
     // Handle item subgoals (e.g., vehicle as part of a larger goal)
     if (type === 'item') {
-      return this.prisma.goal.create({
+      const subgoal = await this.prisma.goal.create({
         data: {
           type: 'item',
           title,
@@ -313,7 +320,7 @@ export class AiGoalCreationController {
           parentGoalId: parentGoal.id,
           itemData: {
             create: {
-              productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+              productImage: null,
               bestPrice: 0,
               currency: 'USD',
               retailerUrl: '',
@@ -328,6 +335,11 @@ export class AiGoalCreationController {
           itemData: true,
         },
       });
+
+      // Queue scraping job - scraper service will determine if scrapers exist for this category
+      await this.scraperService.queueCandidateAcquisition(subgoal.id);
+
+      return subgoal;
     }
 
     // Handle finance subgoals
@@ -424,6 +436,7 @@ export class AiOverviewController {
   constructor(
     private openaiService: OpenAIService,
     private prisma: PrismaService,
+    private scraperService: ScraperService,
   ) {}
 
   /**
@@ -515,7 +528,7 @@ export class AiOverviewController {
 
     // For item/finance goals, create with minimal defaults
     if (type === 'item') {
-      return this.prisma.goal.create({
+      const goal = await this.prisma.goal.create({
         data: {
           type: 'item',
           title,
@@ -525,7 +538,7 @@ export class AiOverviewController {
           userId,
           itemData: {
             create: {
-              productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+              productImage: null,
               bestPrice: data.budget || 0,
               currency: 'USD',
               retailerUrl: '',
@@ -540,6 +553,11 @@ export class AiOverviewController {
           itemData: true,
         },
       });
+
+      // Queue scraping job - scraper service will determine if scrapers exist for this category
+      await this.scraperService.queueCandidateAcquisition(goal.id);
+
+      return goal;
     }
 
     if (type === 'finance') {
@@ -596,7 +614,7 @@ export class AiOverviewController {
           title: parentGoalId,
           userId,
           status: 'active',
-          parentGoalId: null, // Only match top-level goals
+          // Remove parentGoalId: null filter to allow subgoals as parents
         },
         orderBy: { createdAt: 'desc' },
       });
@@ -608,7 +626,7 @@ export class AiOverviewController {
         where: {
           userId,
           status: 'active',
-          parentGoalId: null,
+          // Show all active goals, not just top-level
         },
         select: {
           id: true,
@@ -620,7 +638,7 @@ export class AiOverviewController {
 
       throw new Error(
         `Parent goal not found: "${parentGoalId}"\n\n` +
-        `Available top-level goals:\n${goalList}\n\n` +
+        `Available goals:\n${goalList}\n\n` +
         `Tip: Use the goal's title or exact ID as parentGoalId`
       );
     }
@@ -650,7 +668,7 @@ export class AiOverviewController {
 
     // Handle item subgoals (e.g., vehicle as part of a larger goal)
     if (type === 'item') {
-      return this.prisma.goal.create({
+      const subgoal = await this.prisma.goal.create({
         data: {
           type: 'item',
           title,
@@ -661,7 +679,7 @@ export class AiOverviewController {
           parentGoalId: parentGoal.id,
           itemData: {
             create: {
-              productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
+              productImage: null,
               bestPrice: 0,
               currency: 'USD',
               retailerUrl: '',
@@ -676,6 +694,11 @@ export class AiOverviewController {
           itemData: true,
         },
       });
+
+      // Queue scraping job - scraper service will determine if scrapers exist for this category
+      await this.scraperService.queueCandidateAcquisition(subgoal.id);
+
+      return subgoal;
     }
 
     // Handle finance subgoals

@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../config/prisma.service';
 import { OpenAIService } from './openai.service';
+import { ScraperService } from '../scraper/scraper.service';
 
 interface GoalCreationSession {
   userId: string;
@@ -19,6 +20,7 @@ export class AiGoalCreationService {
     private configService: ConfigService,
     private prisma: PrismaService,
     private openaiService: OpenAIService,
+    private scraperService: ScraperService,
   ) {}
 
   /**
@@ -84,6 +86,10 @@ export class AiGoalCreationService {
   async confirmGoal(userId: string) {
     const session = this.activeSessions.get(userId);
 
+    this.logger.log(`confirmGoal called for userId: ${userId}`);
+    this.logger.log(`Active sessions: ${this.activeSessions.size}`);
+    this.logger.log(`Session found: ${!!session}, awaitingConfirmation: ${session?.awaitingConfirmation}`);
+
     if (!session || !session.awaitingConfirmation) {
       throw new Error('No goal ready for confirmation');
     }
@@ -137,6 +143,23 @@ export class AiGoalCreationService {
       let goal;
 
       if (goalType === 'item') {
+        // Prepare item data with optional vehicle fields
+        const itemData: any = {
+          productImage: null,
+          bestPrice: goalData.budget || 0,
+          currency: 'USD',
+          retailerUrl: 'https://amazon.com',
+          retailerName: 'Amazon',
+          statusBadge: 'pending_search',
+          category: goalData.category,
+          searchTerm: goalData.searchTerm,
+        };
+
+        // Add searchFilters if provided (JSONB field for flexible search preferences)
+        if (goalData.searchFilters) {
+          itemData.searchFilters = goalData.searchFilters;
+        }
+
         goal = await this.prisma.goal.create({
           data: {
             type: 'item',
@@ -146,20 +169,16 @@ export class AiGoalCreationService {
             threadId, // Attach the OpenAI thread to the goal
             userId,
             itemData: {
-              create: {
-                productImage: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400',
-                bestPrice: goalData.budget || 0,
-                currency: 'USD',
-                retailerUrl: 'https://amazon.com',
-                retailerName: 'Amazon',
-                statusBadge: 'pending_search',
-              },
+              create: itemData,
             },
           },
           include: {
             itemData: true,
           },
         });
+
+        // Queue scraping job - scraper service will determine if scrapers exist for this category
+        await this.scraperService.queueCandidateAcquisition(goal.id);
       } else if (goalType === 'finance') {
         const targetBalance = goalData.targetBalance || 1000;
         const currentBalance = goalData.currentBalance || 0;

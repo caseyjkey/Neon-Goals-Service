@@ -178,6 +178,8 @@ export class GoalsService {
         searchResults: data.searchResults,
         candidates: data.candidates !== undefined ? data.candidates : undefined,
         selectedCandidateId: data.selectedCandidateId !== undefined ? data.selectedCandidateId : undefined,
+        shortlistedCandidates: data.shortlistedCandidates !== undefined ? data.shortlistedCandidates : undefined,
+        deniedCandidates: data.deniedCandidates !== undefined ? data.deniedCandidates : undefined,
         stackId: data.stackId !== undefined ? data.stackId : undefined,
         stackOrder: data.stackOrder !== undefined ? data.stackOrder : undefined,
       },
@@ -410,5 +412,16 @@ export class GoalsService {
     }
 
     return goal.itemData?.deniedCandidates || [];
+  }
+
+  async getScrapeJobs(goalId: string, userId: string) {
+    // Verify goal belongs to user
+    await this.findOne(goalId, userId);
+
+    return this.prisma.scrapeJob.findMany({
+      where: { goalId },
+      orderBy: { createdAt: 'desc' },
+      take: 10,
+    });
   }
 }

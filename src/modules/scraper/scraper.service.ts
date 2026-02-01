@@ -78,15 +78,50 @@ export class ScraperService {
           data: { status: 'running' },
         });
 
+        // Check if category is supported
+        const category = job.goal.itemData?.category || 'general';
+        const supportedCategories = ['vehicle']; // Currently only vehicles have scrapers
+
+        // TODO: Implement category-specific scrapers:
+        //   - technology: Amazon, Best Buy, Newegg
+        //   - furniture: Wayfair, IKEA, Article
+        //   - sporting_goods: Dick's, REI, Academy
+        //   - clothing: Nike, Zappos, ASOS
+        //   - pets: Chewy, Petco, PetSmart
+        //   - vehicle_parts: AutoZone, Advance Auto Parts, Rock Auto
+
+        if (!supportedCategories.includes(category)) {
+          this.logger.log(`⏭️ Skipping goal "${job.goal.title}" - category "${category}" not yet supported`);
+
+          // Update statusBadge to not_supported for unsupported categories
+          await this.prisma.itemGoalData.update({
+            where: { goalId: job.goal.id },
+            data: { statusBadge: 'not_supported' },
+          });
+
+          // Mark job as completed with error message
+          await this.prisma.scrapeJob.update({
+            where: { id: job.id },
+            data: {
+              status: 'completed',
+              error: `Category "${category}" not yet supported. Supported: ${supportedCategories.join(', ')}`,
+            },
+          });
+          continue;
+        }
+
         // Acquire candidates
         const candidates = await this.acquireCandidatesForGoal(job.goal);
+
+        // Determine statusBadge based on results
+        const statusBadge = candidates.length > 0 ? 'in_stock' : 'not_found';
 
         // Update goal with candidates
         await this.prisma.itemGoalData.update({
           where: { goalId: job.goal.id },
           data: {
             candidates: candidates as any,
-            statusBadge: 'ready',
+            statusBadge: statusBadge,
             productImage: candidates[0]?.image || job.goal.itemData?.productImage,
             category: job.goal.itemData?.category || 'vehicle',
             searchTerm: job.goal.itemData?.searchTerm || job.goal.title,
@@ -96,12 +131,17 @@ export class ScraperService {
         // Mark job as complete
         await this.prisma.scrapeJob.update({
           where: { id: job.id },
-          data: { status: 'completed' },
+          data: {
+            status: 'completed',
+            error: candidates.length === 0 ? 'No candidates found' : null,
+          },
         });
 
-        this.logger.log(
-          `✅ Populated ${candidates.length} candidates for goal: ${job.goal.title}`,
-        );
+        if (candidates.length === 0) {
+          this.logger.warn(`⚠️ No candidates found for goal: ${job.goal.title} (marked as not_found)`);
+        } else {
+          this.logger.log(`✅ Populated ${candidates.length} candidates for goal: ${job.goal.title}`);
+        }
       } catch (error) {
         // Mark as failed, increment attempts
         await this.prisma.scrapeJob.update({
@@ -144,50 +184,63 @@ export class ScraperService {
   async acquireCandidatesForGoal(goal: any): Promise<ProductCandidate[]> {
     this.logger.log(`Acquiring candidates for: ${goal.title}`);
 
+    // For vehicles, try to build structured URLs from searchFilters
+    const isVehicle = goal.itemData?.category === 'vehicle';
+    const searchFilters = (goal.itemData?.searchFilters as any) || null;
+
     // Determine search query - use searchTerm for vehicle goals, fallback to title
-    const searchQuery = goal.itemData?.category === 'vehicle' && goal.itemData?.searchTerm
+    const searchQuery = isVehicle && goal.itemData?.searchTerm
       ? goal.itemData.searchTerm
       : goal.title;
 
     this.logger.log(`Search query: ${searchQuery} (category: ${goal.itemData?.category || 'general'})`);
 
-    // Try to scrape real data, fallback to mock if it fails
-    let candidates: ProductCandidate[] = [];
-
-    try {
-      candidates = await this.scrapeFromWeb(searchQuery);
-      this.logger.log(`✅ Successfully scraped ${candidates.length} candidates`);
-    } catch (error) {
-      this.logger.warn(`⚠️ Web scraping failed, using mock data: ${error.message}`);
-      candidates = this.getMockCandidates(searchQuery);
+    if (isVehicle && searchFilters) {
+      this.logger.log(`Search filters: ${JSON.stringify(searchFilters)}`);
     }
 
-    // Get denied candidate URLs
-    const deniedCandidates = (goal.itemData?.deniedCandidates as any[]) || [];
-    const deniedUrls = new Set(deniedCandidates.map((c) => c.url));
+    // Try to scrape real data - throw error if both scrapers fail (no mock data)
+    let candidates: ProductCandidate[];
 
-    // Filter out denied candidates
+    try {
+      candidates = await this.scrapeFromWeb(searchQuery, isVehicle ? searchFilters : null);
+      this.logger.log(`✅ Successfully scraped ${candidates.length} candidates`);
+    } catch (error) {
+      this.logger.error(`❌ All scraping methods failed for "${searchQuery}": ${error.message}`);
+      throw new Error(`Failed to scrape candidates for "${goal.title}". Both camoufox and browser-use scrapers failed. Please try again later or contact support.`);
+    }
+
+    // Get denied and shortlisted candidate URLs to filter out
+    const deniedCandidates = (goal.itemData?.deniedCandidates as any[]) || [];
+    const shortlistedCandidates = (goal.itemData?.shortlistedCandidates as any[]) || [];
+    const existingCandidates = (goal.itemData?.candidates as any[]) || [];
+
+    const deniedUrls = new Set(deniedCandidates.map((c) => c.url));
+    const shortlistedUrls = new Set(shortlistedCandidates.map((c) => c.url));
+    const existingUrls = new Set(existingCandidates.map((c) => c.url));
+
+    // Combine all URLs to exclude
+    const excludedUrls = new Set([...deniedUrls, ...shortlistedUrls, ...existingUrls]);
+
+    // Filter out candidates that are already in denied, shortlisted, or existing lists
     const filteredCandidates = candidates.filter(
-      (candidate) => !deniedUrls.has(candidate.url),
+      (candidate) => !excludedUrls.has(candidate.url),
     );
 
-    // Deduplicate by URL
-    const uniqueCandidates = this.deduplicateByUrl(filteredCandidates);
+    this.logger.log(`Filtered out ${excludedUrls.size} existing candidates (${deniedUrls.size} denied, ${shortlistedUrls.size} shortlisted, ${existingUrls.size} existing)`);
+    this.logger.log(`Returning ${filteredCandidates.length} new candidates`);
 
-    this.logger.log(`Filtered out ${deniedUrls.size} denied candidates`);
-    this.logger.log(`Returning ${uniqueCandidates.length} unique candidates`);
-
-    return uniqueCandidates;
+    return filteredCandidates;
   }
 
   /**
    * Scrape candidates from web - tries camoufox first (free), falls back to browser-use ($1.60)
    */
-  private async scrapeFromWeb(query: string): Promise<ProductCandidate[]> {
+  private async scrapeFromWeb(query: string, vehicleData?: { make?: string; model?: string; year?: number; trim?: string; color?: string } | null): Promise<ProductCandidate[]> {
     // Try camoufox first (free, stealth Firefox)
     try {
       this.logger.log(`🦊 Trying camoufox (free) for: ${query}`);
-      return await this.scrapeWithCamoufox(query);
+      return await this.scrapeWithCamoufox(query, vehicleData);
     } catch (error) {
       this.logger.warn(`⚠️ Camoufox failed: ${error.message}`);
       this.logger.log(`🤖 Falling back to browser-use (cost: $1.60)`);
@@ -196,10 +249,239 @@ export class ScraperService {
   }
 
   /**
+   * Build structured URL for CarMax based on vehicle filters
+   * CarMax URL format: /cars/{make}/{model}-{series}/{trim}/{color}
+   * Examples:
+   *   - /cars/gmc/sierra-1500
+   *   - /cars/gmc/sierra-1500/denali
+   *   - /cars/gmc/sierra-3500/denali/gray
+   *   - /cars/ford/f-150/platinum/white
+   *
+   * Note: Series suffix "HD" is stripped (3500HD -> 3500)
+   * Uses searchFilters JSONB structure with extracted series, trims array, and colors array
+   */
+  private buildCarMaxUrl(filters: any): string {
+    const { make, model, series, trims, colors, bodyStyle } = filters || {};
+
+    if (!make || !model) {
+      return null; // Fall back to text search
+    }
+
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+
+    // Build path segments
+    const pathSegments: string[] = [];
+
+    // Determine series - prefer explicit series, otherwise map from bodyStyle
+    let determinedSeries = series;
+    if (!determinedSeries && bodyStyle) {
+      const bodyStyleLower = bodyStyle.toLowerCase();
+      // Map body styles to series
+      if (bodyStyleLower.includes('dual') || bodyStyleLower.includes('dually')) {
+        determinedSeries = '3500HD'; // Dually = 1-ton = 3500HD
+      } else if (bodyStyleLower.includes('3/4 ton') || bodyStyleLower.includes('three quarter')) {
+        determinedSeries = '2500HD';
+      } else if (bodyStyleLower.includes('1/2 ton') || bodyStyleLower.includes('half ton')) {
+        determinedSeries = '1500';
+      }
+    }
+
+    // Base path: model-series (strip "HD" suffix from series for URL)
+    let basePath = modelSlug;
+    if (determinedSeries) {
+      // Strip "HD" suffix if present (3500HD -> 3500, 2500HD -> 2500)
+      const seriesSlug = determinedSeries.toLowerCase().replace('hd', '');
+      basePath = `${modelSlug}-${seriesSlug}`;
+    }
+    pathSegments.push(basePath);
+
+    // Add trim level if provided (as separate path segment)
+    const trimPatterns = ['denali', 'at4', 'elevation', 'slt', 'sle', 'titanium', 'platinum', 'lariat', 'limited', 'king ranch', 'xlt'];
+
+    if (trims && Array.isArray(trims) && trims.length > 0) {
+      const foundTrim = trims.find((t: string) => {
+        const cleanTrim = t.toLowerCase().replace(/\s+/g, '');
+        return trimPatterns.some(pattern => cleanTrim.includes(pattern));
+      });
+
+      if (foundTrim) {
+        pathSegments.push(foundTrim.toLowerCase().replace(/\s+/g, '-'));
+      }
+    }
+
+    // Add color if provided (as separate path segment)
+    if (colors && Array.isArray(colors) && colors.length > 0) {
+      const color = colors[0].toLowerCase();
+      // Common color names CarMax uses
+      const colorMap: { [key: string]: string } = {
+        'black': 'black',
+        'white': 'white',
+        'gray': 'gray',
+        'grey': 'gray',
+        'silver': 'silver',
+        'red': 'red',
+        'blue': 'blue',
+        'green': 'green',
+        'brown': 'brown',
+        'beige': 'beige',
+        'gold': 'gold',
+        'charcoal': 'charcoal',
+      };
+      if (colorMap[color]) {
+        pathSegments.push(colorMap[color]);
+      }
+    }
+
+    return `https://www.carmax.com/cars/${makeSlug}/${pathSegments.join('/')}`;
+  }
+
+  /**
+   * Build structured URL for AutoTrader based on vehicle filters
+   * AutoTrader URL format: /cars-for-sale/{make}/{model}-{series}/{location}?trimCode={code}|{trim}
+   * Examples:
+   *   - /cars-for-sale/gmc/sierra-3500/san-mateo-ca?trimCode=GMC3500PU|Denali
+   *   - /cars-for-sale/ford/f-150/dallas-tx?trimCode=F150|Lariat
+   *
+   * Note: Series "HD" suffix is kept (3500HD -> 3500)
+   * trimCode format: {seriesCode}|{trimName} (e.g., GMC3500PU|Denali Ultimate)
+   */
+  private buildAutoTraderUrl(filters: any): string {
+    const { make, model, series, trims, year } = filters || {};
+
+    if (!make || !model) {
+      return null; // Fall back to text search
+    }
+
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+
+    // Build path: /cars-for-sale/{make}/{model}-{series}/
+    let path = `https://www.autotrader.com/cars-for-sale/${makeSlug}/${modelSlug}`;
+
+    if (series) {
+      // Strip "HD" suffix for AutoTrader (3500HD -> 3500)
+      const seriesSlug = series.toLowerCase().replace('hd', '');
+      path = `${path}-${seriesSlug}`;
+    }
+
+    // Add default location (required for AutoTrader)
+    path += '/san-mateo-ca';
+
+    // Build query parameters
+    const params: string[] = ['searchRadius=500'];
+
+    // Add trimCode if trims provided
+    // Format: trimCode={seriesCode}|{trimName}
+    // Common series codes: GMC1500P, GMC2500P, GMC3500PU, F150, etc.
+    if (trims && Array.isArray(trims) && trims.length > 0) {
+      // Map series to series code
+      const seriesCodeMap: { [key: string]: string } = {
+        '1500': 'GMC1500P',
+        '2500hd': 'GMC2500P',
+        '3500hd': 'GMC3500PU',
+        '1500hd': 'GMC1500P',
+      };
+
+      // Get series code (default to make+model series if not found)
+      let seriesCode = seriesCodeMap[series?.toLowerCase()] || `${makeSlug}${modelSlug}`.toUpperCase();
+
+      // Add trim codes for each trim
+      for (const trim of trims.slice(0, 3)) { // Max 3 trim codes
+        const trimSlug = trim.replace(/\s+/g, ' ');
+        params.push(`trimCode=${encodeURIComponent(`${seriesCode}|${trimSlug}`)}`);
+      }
+    }
+
+    // Add year filter if provided
+    if (year) {
+      params.push(`year=${year}`);
+    }
+
+    return params.length > 1 ? `${path}?${params.join('&')}` : path;
+  }
+
+  /**
+   * Build structured URL for KBB based on vehicle filters
+   * KBB URL format: /{make}/{model}-{series}-{bodyStyle}/{year}/{trim}/
+   * Examples:
+   *   - /gmc/sierra-3500-hd-crew-cab/2026/denali-ultimate/
+   *   - /ford/f-150/2025/xlt/
+   *
+   * Note: KBB keeps "HD" suffix (3500-hd, not 3500) unlike CarMax
+   */
+  private buildKBBUrl(filters: any): string {
+    const { make, model, year, series, trims, bodyStyle } = filters || {};
+
+    if (!make || !model || !year) {
+      return null; // KBB requires year
+    }
+
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+
+    // Build the model-series-bodyStyle path segment
+    let basePath = modelSlug;
+
+    if (series) {
+      // KBB keeps "HD" suffix (3500HD -> 3500-hd)
+      const seriesSlug = series.toLowerCase().replace(/\s+/g, '-');
+      basePath = `${basePath}-${seriesSlug}`;
+    }
+
+    // Add body style if provided (crew-cab, extended-cab, etc.)
+    if (bodyStyle) {
+      const bodyStyleSlug = bodyStyle.toLowerCase().replace(/\s+/g, '-');
+      // Map common body styles to KBB format
+      const bodyStyleMap: { [key: string]: string } = {
+        'crew-cab': 'crew-cab',
+        'extended-cab': 'extended-cab',
+        'regular-cab': 'regular-cab',
+        'crew cab': 'crew-cab',
+        'extended cab': 'extended-cab',
+        'regular cab': 'regular-cab',
+        'double-cab': 'double-cab',
+        'access-cab': 'access-cab',
+      };
+      if (bodyStyleMap[bodyStyleSlug]) {
+        basePath = `${basePath}-${bodyStyleMap[bodyStyleSlug]}`;
+      }
+    }
+
+    // Build trim path segment
+    let trimSegment = '';
+    if (trims && Array.isArray(trims) && trims.length > 0) {
+      trimSegment = trims[0].toLowerCase().replace(/\s+/g, '-');
+    }
+
+    // Assemble URL: /{make}/{model-series-bodyStyle}/{year}/{trim}/
+    const url = `https://www.kbb.com/${makeSlug}/${basePath}/${year}/`;
+    return trimSegment ? `${url}${trimSegment}/` : url;
+  }
+
+  /**
+   * Build structured URL for TrueCar based on vehicle filters
+   * TrueCar URL format: /{make}/{model}/{year}/
+   */
+  private buildTrueCarUrl(filters: any): string {
+    const { make, model, year } = filters || {};
+
+    if (!make || !model || !year) {
+      return null; // TrueCar requires year
+    }
+
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
+    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+
+    return `https://www.truecar.com/${makeSlug}/${modelSlug}/${year}/`;
+  }
+
+  /**
    * Scrape using camoufox (free, stealth Firefox browser)
    * Runs all 5 scrapers in parallel: CarGurus, CarMax, KBB, TrueCar, Carvana
+   * Uses structured URLs if vehicle filters are available
    */
-  private async scrapeWithCamoufox(query: string): Promise<ProductCandidate[]> {
+  private async scrapeWithCamoufox(query: string, vehicleData?: any): Promise<ProductCandidate[]> {
     try {
       const { exec } = require('child_process');
       const util = require('util');
@@ -208,23 +490,65 @@ export class ScraperService {
       const pythonPath = 'python3';
       const baseDir = '/home/trill/Development/neon-goals-service/scripts';
 
-      // All 5 camoufox scrapers
+      // Build structured URLs for scrapers that support it
+      const carMaxUrl = vehicleData?.make && vehicleData?.model ? this.buildCarMaxUrl(vehicleData) : null;
+      const autoTraderUrl = vehicleData?.make && vehicleData?.model ? this.buildAutoTraderUrl(vehicleData) : null;
+      const kbbUrl = vehicleData?.make && vehicleData?.model && vehicleData?.year ? this.buildKBBUrl(vehicleData) : null;
+      const trueCarUrl = vehicleData?.make && vehicleData?.model && vehicleData?.year ? this.buildTrueCarUrl(vehicleData) : null;
+
+      // Build scraper configs with custom URLs where available
       const scrapers = [
-        { name: 'CarGurus', script: `${baseDir}/scrape-cars-camoufox.py` },
-        { name: 'CarMax', script: `${baseDir}/scrape-carmax.py` },
-        { name: 'KBB', script: `${baseDir}/scrape-kbb.py` },
-        { name: 'TrueCar', script: `${baseDir}/scrape-truecar.py` },
-        { name: 'Carvana', script: `${baseDir}/scrape-carvana.py` },
+        { name: 'CarGurus', script: `${baseDir}/scrape-cars-camoufox.py`, url: null },
+        { name: 'CarMax', script: `${baseDir}/scrape-carmax.py`, url: carMaxUrl },
+        { name: 'AutoTrader', script: `${baseDir}/scrape-autotrader.py`, url: autoTraderUrl },
+        { name: 'KBB', script: `${baseDir}/scrape-kbb.py`, url: kbbUrl },
+        { name: 'TrueCar', script: `${baseDir}/scrape-truecar.py`, url: trueCarUrl },
+        { name: 'Carvana', script: `${baseDir}/scrape-carvana-interactive.py`, url: null, useJsonFilters: true },
       ];
 
-      this.logger.log(`🦊 Running all 5 camoufox scrapers for: ${query}`);
+      this.logger.log(`🦊 Running all 6 camoufox scrapers for: ${query}`);
+      if (carMaxUrl) this.logger.log(`📍 CarMax: ${carMaxUrl}`);
+      if (autoTraderUrl) this.logger.log(`📍 AutoTrader: ${autoTraderUrl}`);
+      if (kbbUrl) this.logger.log(`📍 KBB: ${kbbUrl}`);
+      if (trueCarUrl) this.logger.log(`📍 TrueCar: ${trueCarUrl}`);
+      if (vehicleData?.make) this.logger.log(`📍 Carvana: Interactive filter selection for ${vehicleData.make} ${vehicleData.model || ''}`);
 
       // Run all scrapers in parallel
       const results = await Promise.allSettled(
         scrapers.map(async (scraper) => {
           try {
+            let searchArg;
+            let cmdArgs = '5';
+
+            // Build search argument based on scraper type
+            if (scraper.name === 'TrueCar' && vehicleData) {
+              // TrueCar: pass JSON filters for mmt[] parameter format
+              searchArg = JSON.stringify(vehicleData);
+            } else if (scraper.name === 'CarMax' && scraper.url) {
+              // CarMax: use the structured URL we built
+              searchArg = scraper.url;
+            } else if (scraper.name === 'AutoTrader' && scraper.url) {
+              // AutoTrader: use the structured URL we built with trimCode
+              searchArg = scraper.url;
+            } else if (scraper.name === 'KBB' && scraper.url) {
+              // KBB: use the structured URL we built
+              searchArg = scraper.url;
+            } else if (scraper.name === 'Carvana' && scraper.useJsonFilters) {
+              // Carvana: use interactive filter selection with JSON
+              searchArg = JSON.stringify({
+                make: vehicleData?.make,
+                model: vehicleData?.model,
+                series: vehicleData?.series,
+                trims: vehicleData?.trims || [],
+                year: vehicleData?.year
+              });
+            } else {
+              // Use structured URL if available, otherwise fall back to query
+              searchArg = scraper.url || query;
+            }
+
             const { stdout, stderr } = await execPromise(
-              `${pythonPath} ${scraper.script} "${query}" 5`,
+              `${pythonPath} ${scraper.script} '${searchArg}' ${cmdArgs}`,
               { timeout: 120000 }
             );
 

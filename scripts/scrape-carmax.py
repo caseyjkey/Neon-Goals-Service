@@ -43,7 +43,7 @@ def parse_data_clickprops(props_str: str) -> dict:
     return data
 
 
-async def scrape_carmax(query: str, max_results: int = 10):
+async def scrape_carmax(search_arg: str, max_results: int = 10):
     results = []
 
     # IMPORTANT: headless=False because camoufox crashes in headless mode
@@ -51,10 +51,17 @@ async def scrape_carmax(query: str, max_results: int = 10):
 
     try:
         page = await browser.new_page()
-        logging.error(f"[CarMax] Searching for: {query}")
 
-        # Navigate to search results
-        search_url = f"https://www.carmax.com/cars/all?search={query.replace(' ', '+')}"
+        # Check if search_arg is a URL or a query
+        if search_arg.startswith('http'):
+            # Direct URL provided (structured URL from vehicle fields)
+            search_url = search_arg
+            logging.error(f"[CarMax] Using structured URL: {search_url}")
+        else:
+            # Fallback to text search
+            search_url = f"https://www.carmax.com/cars/all?search={search_arg.replace(' ', '+')}"
+            logging.error(f"[CarMax] Searching for: {search_arg}")
+
         await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
 
         # Wait for listings to load
@@ -70,13 +77,13 @@ async def scrape_carmax(query: str, max_results: int = 10):
                 clickprops = await tile.get_attribute('data-clickprops')
                 if clickprops:
                     data = parse_data_clickprops(clickprops)
-                    name = data.get('YMM', query)  # Year Make Model
+                    name = data.get('YMM', search_arg)  # Year Make Model
                     price = extract_number(data.get('Price', '0'))
                     stock_number = data.get('StockNumber', '')
                 else:
                     # Fallback: parse from page elements
                     link_elem = await tile.query_selector('a[href*="/car/"]')
-                    name = await link_elem.inner_text() if link_elem else query
+                    name = await link_elem.inner_text() if link_elem else search_arg
                     price = 0
                     stock_number = ''
 
