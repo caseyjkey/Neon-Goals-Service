@@ -53,10 +53,20 @@ cp .env.example .env
 ### Environment Variables
 
 ```env
+# Database
 DATABASE_URL=postgresql://user:pass@localhost:5432/neon_goals
+
+# GitHub OAuth
 GITHUB_CLIENT_ID=your_github_client_id
 GITHUB_CLIENT_SECRET=your_github_client_secret
 GITHUB_CALLBACK_URL=http://localhost:3001/auth/github/callback
+
+# OpenAI (for AI chat features)
+OPENAI_API_KEY=your_openai_api_key
+
+# Agent API Key (for agent-to-agent communication)
+# Generate with: openssl rand -base64 32
+AGENT_API_KEY=your_generated_api_key_here
 ```
 
 ## Running Locally
@@ -238,16 +248,116 @@ scripts/
 └── scrape-cars.py            # Multi-site (browser-use, AI)
 ```
 
+## Authentication
+
+The API supports two authentication methods for accessing protected endpoints:
+
+### 1. JWT Authentication (User Access)
+
+For user-facing requests, authenticate via GitHub OAuth:
+
+```bash
+# Step 1: Initiate OAuth flow
+GET https://your-domain.com/auth/github
+
+# Step 2: After GitHub callback, you'll receive a JWT token
+# Store this token and include it in subsequent requests:
+
+curl -X GET https://your-domain.com/goals \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### 2. API Key Authentication (Agent Access)
+
+For agent-to-agent communication and automated integrations:
+
+#### Generate an API Key
+
+Generate a secure random API key:
+
+```bash
+# Generate a 32-byte random key (base64 encoded)
+openssl rand -base64 32
+
+# Or using Node.js
+node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+```
+
+#### Configure API Key
+
+Add the generated key to your `.env` file:
+
+```env
+AGENT_API_KEY=your_generated_api_key_here
+```
+
+#### Use API Key in Requests
+
+Include the API key in the `X-API-Key` header:
+
+```bash
+# Example: List chats as an agent
+curl -X GET https://your-domain.com/chats \
+  -H "X-API-Key: your_generated_api_key_here"
+
+# Example: Query goals
+curl -X GET https://your-domain.com/goals \
+  -H "X-API-Key: your_generated_api_key_here"
+
+# Example: Send message to overview specialist
+curl -X POST https://your-domain.com/ai/overview/chat \
+  -H "X-API-Key: your_generated_api_key_here" \
+  -H "Content-Type: application/json" \
+  -d '{"message": "What should I work on today?"}'
+```
+
+#### API Key Endpoints
+
+All endpoints that support JWT also support API key authentication:
+
+| Endpoint | Description |
+|----------|-------------|
+| `GET /chats` | Discover user chats (structured response) |
+| `GET /chats/overview` | Get overview chat |
+| `GET /chats/category/:categoryId` | Get category specialist chat |
+| `GET /goals` | List/query goals |
+| `GET /goals/:id` | Get goal details |
+| `POST /ai/overview/chat` | Overview specialist chat |
+| `POST /ai/specialist/category/:categoryId/chat` | Category specialist chat |
+
 ## API Endpoints
 
+### Authentication
 - `GET /auth/github` - GitHub OAuth login
 - `GET /auth/github/callback` - OAuth callback
+- `POST /auth/login` - Email/password login
+- `POST /auth/register` - Register new user
+
+### Goals
 - `GET /goals` - List user goals
-- `POST /goals` - Create goal
-- `PUT /goals/:id` - Update goal
+- `GET /goals/:id` - Get single goal
+- `POST /goals/item` - Create item goal
+- `POST /goals/finance` - Create finance goal
+- `POST /goals/action` - Create action goal
+- `PATCH /goals/:id` - Update goal
 - `DELETE /goals/:id` - Delete goal
 - `POST /goals/:id/deny-candidate` - Deny a candidate
 - `POST /goals/:id/restore-candidate` - Restore denied candidate
+
+### Chats (Agent Discovery)
+- `GET /chats` - Structured chat list for agents
+- `GET /chats/overview` - Get or create overview chat
+- `GET /chats/category/:categoryId` - Get or create category specialist chat
+- `POST /chats/:id/messages` - Add message to chat
+- `PUT /chats/:chatId/messages/:messageId` - Edit message
+
+### AI Specialists
+- `POST /ai/overview/chat` - Non-streaming overview chat
+- `POST /ai/overview/chat/stream` - Streaming overview chat (SSE)
+- `POST /ai/overview/chat/stop` - Stop active stream
+- `POST /ai/specialist/category/:categoryId/chat` - Non-streaming specialist chat
+- `POST /ai/specialist/category/:categoryId/chat/stream` - Streaming specialist chat (SSE)
+- `POST /ai/specialist/category/:categoryId/chat/stop` - Stop specialist stream
 
 ## Cron Jobs
 
