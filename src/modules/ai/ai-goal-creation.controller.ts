@@ -3,6 +3,7 @@ import { Response } from 'express';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from '../../config/prisma.service';
 import { GoalCommandService } from './goal-command.service';
+import { ChatsService } from '../chats/chats.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
@@ -48,6 +49,7 @@ export class AiOverviewController {
     private openaiService: OpenAIService,
     private prisma: PrismaService,
     private goalCommandService: GoalCommandService,
+    private chatsService: ChatsService,
   ) {}
 
   /**
@@ -59,6 +61,9 @@ export class AiOverviewController {
     @CurrentUser('userId') userId: string,
     @Body() body: { message: string },
   ) {
+    // Get or create the overview chat
+    const chat = await this.chatsService.getOrCreateOverviewChat(userId);
+
     // Fetch user's active goals with subgoals
     const goals = await this.prisma.goal.findMany({
       where: {
@@ -82,6 +87,7 @@ export class AiOverviewController {
       userId,
       body.message,
       goals,
+      chat.id,
     );
 
     // Execute commands if any were returned
@@ -113,6 +119,9 @@ export class AiOverviewController {
     res.setHeader('X-Accel-Buffering', 'no');
 
     try {
+      // Get or create the overview chat
+      const chat = await this.chatsService.getOrCreateOverviewChat(userId);
+
       // Fetch user's active goals
       const goals = await this.prisma.goal.findMany({
         where: {
@@ -134,6 +143,7 @@ export class AiOverviewController {
         userId,
         body.message,
         goals,
+        chat.id,
       )) {
         res.write(`data: ${JSON.stringify(chunk)}\n\n`);
 

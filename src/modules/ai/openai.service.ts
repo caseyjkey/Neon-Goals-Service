@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../config/prisma.service';
+import { ConversationSummaryService } from './conversation-summary.service';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
 
@@ -50,6 +51,7 @@ export class OpenAIService implements OnModuleInit {
   constructor(
     private configService: ConfigService,
     private prisma: PrismaService,
+    private summaryService: ConversationSummaryService,
   ) {
     this.apiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }
@@ -63,15 +65,29 @@ export class OpenAIService implements OnModuleInit {
 
   /**
    * Load conversation history from database for a thread
+   * If chatId is provided, uses summary-aware context building
    */
-  private async loadThreadHistory(threadId: string, userId: string): Promise<ChatCompletionMessageParam[]> {
+  private async loadThreadHistory(threadId: string, userId: string, chatId?: string): Promise<ChatCompletionMessageParam[]> {
     // Check in-memory cache first
     const cached = this.threadHistories.get(threadId);
     if (cached) {
       return cached.messages;
     }
 
-    // Load from database
+    // If we have a chatId, use the summary service for efficient context building
+    if (chatId) {
+      try {
+        const context = await this.summaryService.buildContext(chatId);
+        // Cache in memory
+        this.threadHistories.set(threadId, { messages: context });
+        return context;
+      } catch (error) {
+        this.logger.warn(`Failed to load context for chat ${chatId}, falling back to threadId loading:`, error);
+        // Fall through to old approach
+      }
+    }
+
+    // Legacy approach: Load all messages by threadId
     const messages = await this.prisma.message.findMany({
       where: { threadId, userId },
       orderBy: { createdAt: 'asc' },
@@ -815,14 +831,24 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
     userId: string,
     message: string,
     goals: any[],
+    chatId: string,
   ): Promise<{ content: string; commands?: any[] }> {
     // Use a special thread ID for overview chat
     const threadId = `overview_${userId}`;
 
-    // Load conversation history
+    // Check if we need to summarize before processing this message
+    const shouldSummarize = await this.summaryService.shouldSummarize(chatId);
+    if (shouldSummarize) {
+      this.logger.log(`Triggering summarization for chat ${chatId}`);
+      await this.summaryService.summarizeChat(chatId);
+      // Clear the in-memory history to force reload with summaries
+      this.threadHistories.delete(threadId);
+    }
+
+    // Load conversation history (includes summaries if available)
     let history = this.threadHistories.get(threadId);
     if (!history) {
-      const messages = await this.loadThreadHistory(threadId, userId);
+      const messages = await this.loadThreadHistory(threadId, userId, chatId);
       history = { messages };
       this.threadHistories.set(threadId, history);
     }
@@ -851,11 +877,11 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
       // Add assistant response to history
       history.messages.push({ role: 'assistant', content });
 
-      // Save messages to database
+      // Save messages to database with chatId
       await this.saveMessages(threadId, userId, [
         { role: 'user', content: message },
         { role: 'assistant', content },
-      ]);
+      ], chatId);
 
       // Parse structured commands
       const commands = this.parseCommands(content);
@@ -1217,14 +1243,24 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
     userId: string,
     message: string,
     goals: any[],
+    chatId: string,
   ): AsyncGenerator<{ content: string; done: boolean }, void, unknown> {
     const threadId = `overview_${userId}`;
     const streamKey = `overview_${userId}_${Date.now()}`;
 
-    // Load conversation history
+    // Check if we need to summarize before processing this message
+    const shouldSummarize = await this.summaryService.shouldSummarize(chatId);
+    if (shouldSummarize) {
+      this.logger.log(`Triggering summarization for chat ${chatId}`);
+      await this.summaryService.summarizeChat(chatId);
+      // Clear the in-memory history to force reload with summaries
+      this.threadHistories.delete(threadId);
+    }
+
+    // Load conversation history (includes summaries if available)
     let history = this.threadHistories.get(threadId);
     if (!history) {
-      const messages = await this.loadThreadHistory(threadId, userId);
+      const messages = await this.loadThreadHistory(threadId, userId, chatId);
       history = { messages };
       this.threadHistories.set(threadId, history);
     }
@@ -1281,11 +1317,11 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
       // Add assistant response to history
       history.messages.push({ role: 'assistant', content: fullContent });
 
-      // Save messages to database
+      // Save messages to database with chatId
       await this.saveMessages(threadId, userId, [
         { role: 'user', content: message },
         { role: 'assistant', content: fullContent },
-      ]);
+      ], chatId);
 
       yield finalChunk;
     } catch (error) {
