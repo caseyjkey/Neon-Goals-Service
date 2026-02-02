@@ -55,12 +55,12 @@ async def scrape_carvana_interactive(
     browser = await AsyncCamoufox(headless=False, humanize=True).__aenter__()
 
     try:
-        page = await browser.new_page(viewport={'width': 1920, 'height': 1080})
+        page = await browser.new_page(viewport={'width': 1366, 'height': 768})
 
         # Resize window using JavaScript to ensure full width
-        await page.evaluate("window.resizeTo(1920, 1080)")
-        await page.set_viewport_size({'width': 1920, 'height': 1080})
-        logging.error(f"[Carvana] Window and viewport resized to 1920x1080")
+        await page.evaluate("window.resizeTo(1366, 768)")
+        await page.set_viewport_size({'width': 1366, 'height': 768})
+        logging.error(f"[Carvana] Window and viewport resized to 1366x768")
 
         # Start at Carvana search page
         logging.error(f"[Carvana] Starting search")
@@ -145,7 +145,15 @@ async def scrape_carvana_interactive(
 
         # Step 3: Click on model if provided
         if model:
-            logging.error(f"[Carvana] Selecting model: {model}")
+            # Combine model and series for search (e.g., "Sierra" + "3500HD" -> "Sierra 3500")
+            search_model = model
+            if series:
+                # Remove "HD" from series for search (Carvana uses "3500" not "3500HD")
+                series_clean = series.replace('HD', '').replace('hd', '')
+                search_model = f"{model} {series_clean}"
+                logging.error(f"[Carvana] Combined model + series: '{search_model}'")
+
+            logging.error(f"[Carvana] Selecting model: {search_model}")
             try:
                 # Wait for Models section to appear after make is selected
                 await asyncio.sleep(1)
@@ -162,20 +170,67 @@ async def scrape_carvana_interactive(
                         span = await label.query_selector('span[class*="Checkbox-module_label"]')
                         if span:
                             text = (await span.inner_text()).strip()
-                            if text == model:
+                            if text == search_model:
                                 await label.click(timeout=5000)
                                 await asyncio.sleep(2)
-                                logging.error(f"[Carvana] Selected model: {model} (clicked label)")
+                                logging.error(f"[Carvana] Selected model: {search_model} (clicked label)")
                                 model_clicked = True
                                 break
                     except Exception as inner_e:
                         continue
 
+                # If exact match not found, try fuzzy match
                 if not model_clicked:
-                    logging.error(f"[Carvana] Could not find/click model: {model}")
+                    logging.error(f"[Carvana] Could not find exact model '{search_model}', trying fuzzy match...")
+
+                    for label in all_labels:
+                        try:
+                            span = await label.query_selector('span[class*="Checkbox-module_label"]')
+                            if span:
+                                text = (await span.inner_text()).strip()
+                                # Try various fuzzy matching strategies
+                                model_lower = search_model.lower()
+                                text_lower = text.lower()
+
+                                # Strategy 1: Remove HD/Hd from model to find base
+                                # "Sierra 3500HD" -> "Sierra 3500"
+                                base_model = model_lower.replace('hd', '').replace('hd', '').replace('-', ' ').strip()
+                                if base_model == text_lower or text_lower == base_model:
+                                    await label.click(timeout=5000)
+                                    await asyncio.sleep(2)
+                                    logging.error(f"[Carvana] Selected fuzzy model match: '{text}' (for '{search_model}')")
+                                    model_clicked = True
+                                    break
+
+                                # Strategy 2: Check if model is a prefix of available model
+                                # "Sierra 3500" matches "Sierra 3500 Crew Cab"
+                                if text_lower.startswith(model_lower + ' '):
+                                    await label.click(timeout=5000)
+                                    await asyncio.sleep(2)
+                                    logging.error(f"[Carvana] Selected prefix model match: '{text}' (for '{search_model}')")
+                                    model_clicked = True
+                                    break
+
+                                # Strategy 3: Check if available model is a prefix of requested model
+                                # "Sierra 3500" matches "Sierra 3500HD"
+                                if model_lower.startswith(text_lower + ' ') or model_lower.startswith(text_lower + '-'):
+                                    await label.click(timeout=5000)
+                                    await asyncio.sleep(2)
+                                    logging.error(f"[Carvana] Selected prefix model match: '{text}' (for '{search_model}')")
+                                    model_clicked = True
+                                    break
+                        except Exception as inner_e:
+                            continue
+
+                if not model_clicked:
+                    logging.error(f"[Carvana] Could not find/click model: {search_model}")
+                    # IMPORTANT: Return empty results if we can't select the correct model
+                    # Otherwise we'd return all vehicles for the make (trash listings)
+                    return []
 
             except Exception as e:
                 logging.error(f"[Carvana] Error selecting model: {e}")
+                return []
 
         # Step 4: Click Trim button and select trims if provided
         # Note: Trim button only appears after a model is selected
@@ -281,6 +336,20 @@ async def scrape_carvana_interactive(
 
         # Wait for results to load
         await asyncio.sleep(5)
+
+        # Check for "No results found" condition
+        page_text = await page.inner_text('body')
+        no_results_indicators = [
+            'No matching vehicles',
+            'No results found',
+            '0 results',
+            'No cars found',
+            'Try changing your search',
+            'No exact matches'
+        ]
+        if any(indicator in page_text for indicator in no_results_indicators):
+            logging.error(f"[Carvana] No results found - returning empty")
+            return []
 
         # Extract listings
         listings = await page.query_selector_all('a[href*="/vehicle/"]')

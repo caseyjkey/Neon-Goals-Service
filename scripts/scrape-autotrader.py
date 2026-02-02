@@ -1,24 +1,31 @@
 #!/usr/bin/env python3
 """
-AutoTrader scraper using Camoufox (VISIBLE MODE - headless doesn't work)
-Supports URL filters: /cars-for-sale/gmc/sierra-3500/san-mateo-ca?trimCode=GMC3500PU|Denali
+AutoTrader scraper using Chrome CDP (primary) or Camoufox (fallback)
 """
-import asyncio
 import json
 import sys
 import logging
 import re
+import random
+import time
 from pathlib import Path
 
 logging.basicConfig(level=logging.ERROR, format='%(message)s', stream=sys.stderr)
 
+# Try to import Playwright for CDP first
 try:
-    from camoufox.async_api import AsyncCamoufox
+    from playwright.sync_api import sync_playwright
+    PLAYWRIGHT_AVAILABLE = True
 except ImportError:
-    print("Installing camoufox...")
-    import subprocess
-    subprocess.check_call([sys.executable, "-m", "pip", "install", "camoufox"])
-    from camoufox.async_api import AsyncCamoufox
+    PLAYWRIGHT_AVAILABLE = False
+
+# Try to import Camoufox as fallback
+try:
+    from camoufox.sync_api import Camoufox
+    from browserforge.fingerprints import Screen
+    CAMOUFOX_AVAILABLE = True
+except ImportError:
+    CAMOUFOX_AVAILABLE = False
 
 
 def extract_number(text: str) -> int:
@@ -32,138 +39,334 @@ def extract_number(text: str) -> int:
         return 0
 
 
-async def scrape_autotrader(query: str, max_results: int = 10):
+def scrape_with_playwright_cdp(query: str, max_results: int, cdp_url: str = "http://localhost:9222"):
+    """Scrape using Playwright connected to Chrome CDP"""
     results = []
 
-    # IMPORTANT: headless=False because camoufox crashes in headless mode
-    browser = await AsyncCamoufox(headless=False, humanize=True).__aenter__()
+    with sync_playwright() as p:
+        try:
+            logging.error(f"[AutoTrader] Connecting to Chrome CDP at {cdp_url}...")
+            browser = p.chromium.connect_over_cdp(cdp_url)
 
-    try:
-        page = await browser.new_page()
+            # Use the first context or create a new one
+            if browser.contexts:
+                context = browser.contexts[0]
+            else:
+                context = browser.new_context()
 
-        # Check if query is a URL or text search
-        if query.startswith('http'):
-            # Structured URL provided (with filters)
-            search_url = query
-        else:
-            # Fallback to text search
-            search_terms = query.replace(' ', '-')
-            search_url = f"https://www.autotrader.com/cars-for-sale/all-cars/{search_terms}/san-mateo-ca?searchRadius=500"
+            # Use existing page or create new one, close other pages
+            if len(context.pages) > 0:
+                # Close extra pages, keep only one
+                while len(context.pages) > 1:
+                    context.pages[-1].close()
+                page = context.pages[0]
+            else:
+                page = context.new_page()
 
-        logging.error(f"[AutoTrader] Searching: {search_url}")
-        await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
+            logging.error(f"[AutoTrader] Connected via CDP!")
+        except Exception as e:
+            logging.error(f"[AutoTrader] CDP connection failed: {e}")
+            return None
 
-        # Wait for listings to load
-        await asyncio.sleep(5)
+        try:
+            logging.error(f"[AutoTrader] Query: {query}")
 
-        # AutoTrader uses various listing card selectors
-        # Try multiple selectors in order of preference
-        selectors = [
-            '[data-cmp="inventoryListingV2"]',
-            '[data-type="listing"]',
-            '.inventory-listing-card',
-            'div[data-uuid]',
-        ]
+            # Use the query URL directly if it's a full URL
+            if query.startswith('http'):
+                search_url = query
+            else:
+                # Build search URL from text query
+                search_terms_slug = query.replace(' ', '-').lower()
+                search_url = f"https://www.autotrader.com/cars-for-sale/{search_terms_slug}/san-mateo-ca?searchRadius=500"
 
-        listings = []
-        for selector in selectors:
-            found = await page.query_selector_all(selector)
-            if found:
-                listings = found
-                logging.error(f"[AutoTrader] Found {len(listings)} listings using {selector}")
-                break
+            logging.error(f"[AutoTrader] Navigating to: {search_url}")
+            page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
+            time.sleep(random.uniform(2, 4))
 
-        if not listings:
-            logging.error("[AutoTrader] No listings found")
-            return []
-
-        for i, listing in enumerate(listings[:max_results]):
+            # Wait for listings
             try:
-                # Get all text from listing
-                all_text = await listing.inner_text()
+                page.wait_for_selector('a[href*="/cars-for-sale/vehicle/"]', timeout=30000)
+                logging.error(f"[AutoTrader] Vehicle links appeared")
+            except:
+                logging.error(f"[AutoTrader] Timeout waiting for vehicle links")
 
-                # Extract title (year + make + model + trim)
-                # AutoTrader often has this in a heading or link
-                title_elem = await listing.query_selector('h2, h3, a[data-cmp="subheading"]')
-                if title_elem:
-                    title = (await title_elem.inner_text()).strip()
+            # Infinite scroll
+            last_listing_count = 0
+            scroll_attempts = 0
+            max_scroll_attempts = 15
+
+            while scroll_attempts < max_scroll_attempts:
+                listings = page.query_selector_all('a[href*="/cars-for-sale/vehicle/"]')
+                current_count = len(listings)
+                logging.error(f"[AutoTrader] Scroll attempt {scroll_attempts + 1}: Found {current_count} listings")
+
+                if current_count >= max_results or current_count == last_listing_count:
+                    if current_count == last_listing_count and current_count > 0:
+                        break
+                    break
+
+                last_listing_count = current_count
+                scroll_height = scroll_attempts * 800 + 1000
+                page.evaluate(f'window.scrollBy(0, {scroll_height})')
+                time.sleep(1.5)
+                scroll_attempts += 1
+
+            page.evaluate('window.scrollTo(0, 0)')
+            time.sleep(2)
+
+            # Check for bot detection
+            page_text = page.inner_text('body')
+            if any(indicator in page_text.lower() for indicator in ['page unavailable', 'incident number:', 'we\'re sorry']):
+                logging.error(f"[AutoTrader] Bot detected - returning empty")
+                return []
+
+            # Deduplicate and extract listings
+            listings = page.query_selector_all('a[href*="/cars-for-sale/vehicle/"]')
+            logging.error(f"[AutoTrader] Found {len(listings)} vehicle listing links")
+
+            seen_vehicle_ids = set()
+            for listing in listings:
+                url = listing.get_attribute('href') or ''
+                clean_url = url.split('#')[0]
+                vehicle_id_match = re.search(r'/vehicle/(\d+)', clean_url)
+                if vehicle_id_match:
+                    vehicle_id = vehicle_id_match.group(1)
+                    if vehicle_id not in seen_vehicle_ids:
+                        seen_vehicle_ids.add(vehicle_id)
+                        # Extract listing data...
+                        link_text = listing.inner_text()
+                        title = link_text.strip()
+
+                        if not title or len(title) < 10:
+                            continue
+
+                        # Get price and mileage from ancestor text
+                        all_text = ''
+                        for ancestor_level in range(1, 13):
+                            try:
+                                ancestor = listing.evaluate(f'el => {{ let p = el; for(let i=0; i<{ancestor_level}; i++) p = p?.parentElement; return p?.innerText; }}')
+                                if ancestor and len(ancestor) > 100:
+                                    all_text = ancestor
+                                    break
+                            except:
+                                continue
+
+                        price_match = re.search(r'\$\s*([\d,]+)', all_text)
+                        price = extract_number(price_match.group(1)) if price_match else 0
+
+                        if price == 0:
+                            for match in re.finditer(r'(\d{1,2},\d{3})', all_text):
+                                potential_price = extract_number(match.group(1))
+                                if 5000 <= potential_price <= 500000:
+                                    price = potential_price
+                                    break
+
+                        mileage_match = re.search(r'(\d+)\s*mi\b', all_text, re.IGNORECASE)
+                        mileage = int(mileage_match.group(1)) if mileage_match else 0
+
+                        # Get image from ancestor elements
+                        image = ''
+                        try:
+                            img_src = listing.evaluate('''
+                                el => {
+                                    for (let level = 1; level <= 8; level++) {
+                                        let ancestor = el;
+                                        for (let i = 0; i < level; i++) {
+                                            if (ancestor) ancestor = ancestor.parentElement;
+                                        }
+                                        if (!ancestor) continue;
+                                        const img = ancestor.querySelector('img');
+                                        if (img && img.src && img.src.includes('autotrader.com')) {
+                                            return img.src;
+                                        }
+                                    }
+                                    return '';
+                                }
+                            ''')
+                            if img_src:
+                                image = img_src
+                        except:
+                            pass
+
+                        if price > 0:
+                            results.append({
+                                'name': title,
+                                'price': price,
+                                'mileage': mileage,
+                                'image': image,
+                                'retailer': 'AutoTrader',
+                                'url': f"https://www.autotrader.com{clean_url}" if not clean_url.startswith('http') else clean_url,
+                                'location': 'AutoTrader'
+                            })
+                            logging.error(f"[AutoTrader] {title[:30]} - ${price:,}")
+
+                        if len(results) >= max_results:
+                            break
+
+        except Exception as e:
+            logging.error(f"[AutoTrader] CDP scraping error: {e}")
+
+        return results
+
+
+def scrape_with_camoufox(query: str, max_results: int):
+    """Scrape using Camoufox as fallback"""
+    results = []
+
+    os_choice = random.choice(['windows', 'macos', 'linux'])
+
+    with Camoufox(
+        headless=False,
+        os=(os_choice,),
+        screen=Screen(max_width=1366, max_height=768),
+        humanize=True,
+    ) as browser:
+        page = browser.new_page()
+
+        logging.error(f"[AutoTrader] Using Camoufox with {os_choice} fingerprint...")
+        page.goto("https://www.autotrader.com", wait_until='domcontentloaded', timeout=30000)
+        time.sleep(random.uniform(5, 10))
+
+        # Determine search terms
+        if query.startswith('http'):
+            parts = query.split('/')
+            if 'cars-for-sale' in parts:
+                idx = parts.index('cars-for-sale')
+                if idx + 2 < len(parts):
+                    make = parts[idx + 1].replace('-', ' ').title()
+                    model = parts[idx + 2].split('-')[0].replace('-', ' ').title() if idx + 2 < len(parts) else ''
+                    search_terms = f"{make} {model}".strip()
                 else:
-                    # Try to extract from data attributes or text
-                    year_match = re.search(r'\b(19|20)\d{2}\b', all_text)
-                    if year_match:
-                        title = year_match.group(0)
-                    else:
-                        title = "Vehicle"
+                    search_terms = "GMC Sierra"
+            else:
+                search_terms = "GMC Sierra"
+        else:
+            search_terms = query
 
-                # Extract price - AutoTrader uses various price selectors
-                price_elem = await listing.query_selector('[data-cmp="pricing"], .price, .pricing-value, [data-price]')
-                price = 0
-                if price_elem:
-                    price_text = await price_elem.inner_text()
-                    price = extract_number(price_text)
+        search_terms_slug = search_terms.replace(' ', '-').lower()
+        search_url = f"https://www.autotrader.com/cars-for-sale/{search_terms_slug}/san-mateo-ca?searchRadius=500"
 
-                # Extract mileage
-                mileage_match = re.search(r'(\d+[,\d]*)\s*mi', all_text, re.IGNORECASE)
-                mileage = extract_number(mileage_match.group(1)) if mileage_match else 0
+        logging.error(f"[AutoTrader] Navigating to: {search_url}")
+        page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
+        time.sleep(random.uniform(3, 5))
 
-                # Get image
-                img_elem = await listing.query_selector('img')
+        # Same extraction logic as CDP...
+        try:
+            page.wait_for_selector('a[href*="/cars-for-sale/vehicle/"]', timeout=30000)
+        except:
+            pass
+
+        listings = page.query_selector_all('a[href*="/cars-for-sale/vehicle/"]')
+
+        for listing in listings[:max_results]:
+            url = listing.get_attribute('href') or ''
+            if not url:
+                continue
+
+            # Extract data (simplified for brevity)
+            link_text = listing.inner_text()
+            title = link_text.strip()
+
+            if not title or len(title) < 10:
+                continue
+
+            # Get ancestor text for price
+            try:
+                all_text = ''
+                for ancestor_level in range(1, 8):
+                    try:
+                        ancestor = listing.evaluate(f'el => {{ let p = el; for(let i=0; i<{ancestor_level}; i++) p = p?.parentElement; return p?.innerText; }}')
+                        if ancestor and len(ancestor) > 50:
+                            all_text = ancestor
+                            break
+                    except:
+                        continue
+
+                price_match = re.search(r'\$\s*([\d,]+)', all_text)
+                price = extract_number(price_match.group(1)) if price_match else 0
+
+                # Get image from ancestor elements
                 image = ''
-                if img_elem:
-                    image = await img_elem.get_attribute('src') or ''
-                    # Get higher quality image if available
-                    image = image.replace('/w100/', '/w400/').replace('/h100/', '/h300/')
-
-                # Get URL
-                link_elem = await listing.query_selector('a[href*="/cars-for-sale/"]')
-                url = ''
-                if link_elem:
-                    url = await link_elem.get_attribute('href') or ''
-                    url = url if url.startswith('http') else f"https://www.autotrader.com{url}"
-
-                # Get location/dealer info
-                location = 'AutoTrader'
-                dealer_match = re.search(r'(.*?)(?:\s*|\s*\|\s*)(\d+\s*mi)?\s*away', all_text)
-                if dealer_match:
-                    location = f"AutoTrader ({dealer_match.group(1).strip()})"
+                try:
+                    img_src = listing.evaluate('''
+                        el => {
+                            for (let level = 1; level <= 8; level++) {
+                                let ancestor = el;
+                                for (let i = 0; i < level; i++) {
+                                    if (ancestor) ancestor = ancestor.parentElement;
+                                }
+                                if (!ancestor) continue;
+                                const img = ancestor.querySelector('img');
+                                if (img && img.src && img.src.includes('autotrader.com')) {
+                                    return img.src;
+                                }
+                            }
+                            return '';
+                        }
+                    ''')
+                    if img_src:
+                        image = img_src
+                except:
+                    pass
 
                 if price > 0:
                     results.append({
                         'name': title,
                         'price': price,
-                        'mileage': mileage,
+                        'mileage': 0,
                         'image': image,
                         'retailer': 'AutoTrader',
                         'url': url,
-                        'location': location
+                        'location': 'AutoTrader'
                     })
                     logging.error(f"[AutoTrader] {title[:30]} - ${price:,}")
 
-            except Exception as e:
-                logging.error(f"[AutoTrader] Error extracting listing {i}: {e}")
+            except:
                 continue
-
-    except Exception as e:
-        logging.error(f"[AutoTrader] Scraping error: {e}")
-        import traceback
-        traceback.print_exc()
-
-    finally:
-        await browser.close()
 
     return results
 
 
-async def main():
+def scrape_autotrader(query: str, max_results: int = 10, cdp_url: str = "http://localhost:9222"):
+    """
+    Main scrape function that tries CDP first, then falls back to Camoufox
+    """
+    # Try CDP first if Playwright is available
+    if PLAYWRIGHT_AVAILABLE:
+        logging.error(f"[AutoTrader] Trying Chrome CDP...")
+        results = scrape_with_playwright_cdp(query, max_results, cdp_url)
+
+        if results is not None:  # CDP connection succeeded
+            if results:
+                logging.error(f"[AutoTrader] CDP scraping successful: {len(results)} results")
+                return results
+            else:
+                logging.error(f"[AutoTrader] CDP returned no results")
+                return results
+        else:
+            logging.error(f"[AutoTrader] CDP connection failed, trying fallback...")
+
+    # Fallback to Camoufox
+    if CAMOUFOX_AVAILABLE:
+        logging.error(f"[AutoTrader] Using Camoufox fallback...")
+        return scrape_with_camoufox(query, max_results)
+    else:
+        logging.error(f"[AutoTrader] No scraping backend available!")
+        return []
+
+
+def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-autotrader.py <URL or search query> [max_results]"}))
+        print(json.dumps({"error": "Usage: scrape-autotrader.py <URL or search query> [max_results] [cdp_url]"}))
+        print(json.dumps({"error": "Start Chrome with: google-chrome --remote-debugging-port=9222"}))
         sys.exit(1)
 
     query = sys.argv[1]
     max_results = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+    cdp_url = sys.argv[3] if len(sys.argv) > 3 else "http://localhost:9222"
 
     try:
-        result = await scrape_autotrader(query, max_results)
+        result = scrape_autotrader(query, max_results, cdp_url)
 
         if not result:
             print(json.dumps({"error": f"No AutoTrader listings found for '{query}'"}))
@@ -171,8 +374,10 @@ async def main():
             print(json.dumps(result, indent=2))
     except Exception as e:
         print(json.dumps({"error": str(e)}))
+        import traceback
+        traceback.print_exc()
         sys.exit(1)
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    main()

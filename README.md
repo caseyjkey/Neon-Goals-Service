@@ -102,6 +102,55 @@ python3 scripts/scrape-carvana.py "honda civic" 5
 python3 scripts/scrape-cars.py "honda civic" 3
 ```
 
+### AutoTrader (Chrome CDP or Camoufox)
+```bash
+# Requires Chrome with remote debugging enabled:
+# google-chrome --remote-debugging-port=9222
+
+python3 scripts/scrape-autotrader.py "GMC Sierra Denali" 5
+```
+
+## Testing Scrapers
+
+A test script is included to verify all scrapers are working correctly:
+
+```bash
+# Run all scraper tests
+python3 scripts/test-scrapers.py
+```
+
+The test script will:
+- Test each scraper with a sample query
+- Report the number of results found
+- Show a sample result from each scraper
+- Provide a summary of pass/fail/empty results
+
+**Test output:**
+```
+============================================================
+Car Scraper Test Suite
+============================================================
+
+Testing: AutoTrader (CDP) - GMC Sierra Denali...
+  ✓ PASS - Found 5 results
+    Sample: New 2025 GMC Sierra 3500 Denali - $89,415
+
+Testing: CarMax - GMC Sierra...
+  ✓ PASS - Found 3 results
+    Sample: 2023 GMC Sierra 1500 Denali - $65,998
+
+...
+
+============================================================
+Summary:
+============================================================
+  Passed: 3
+  Empty:  1
+  Failed: 0
+  Skipped: 0
+  Total:  4
+```
+
 ## Production Deployment
 
 ### Important: Camoufox Display Requirements
@@ -115,8 +164,8 @@ Install Xvfb:
 # Ubuntu/Debian
 sudo apt-get install xvfb
 
-# Start Xvfb
-Xvfb :99 -screen 0 1920x1080x24 &
+# Start Xvfb (using 1366x768 for laptop compatibility)
+Xvfb :99 -screen 0 1366x768x24 &
 export DISPLAY=:99
 ```
 
@@ -136,7 +185,7 @@ RUN apt-get update && apt-get install -y xvfb
 # Your app setup...
 
 # Run with virtual display
-CMD ["sh", "-c", "Xvfb :99 -screen 0 1920x1080x24 & export DISPLAY=:99 && npm run start:prod"]
+CMD ["sh", "-c", "Xvfb :99 -screen 0 1366x768x24 & export DISPLAY=:99 && npm run start:prod"]
 ```
 
 #### Option 3: Systemd Service
@@ -151,7 +200,7 @@ Type=simple
 User=www-data
 WorkingDirectory=/var/www/neon-goals-service
 Environment="DISPLAY=:99"
-ExecStartPre=/usr/bin/Xvfb :99 -screen 0 1920x1080x24 &
+ExecStartPre=/usr/bin/Xvfb :99 -screen 0 1366x768x24 &
 ExecStart=/usr/bin/npm run start:prod
 Restart=always
 

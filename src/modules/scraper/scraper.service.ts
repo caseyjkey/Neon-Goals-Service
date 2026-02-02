@@ -186,7 +186,17 @@ export class ScraperService {
 
     // For vehicles, try to build structured URLs from searchFilters
     const isVehicle = goal.itemData?.category === 'vehicle';
-    const searchFilters = (goal.itemData?.searchFilters as any) || null;
+    let searchFilters = (goal.itemData?.searchFilters as any) || null;
+
+    // Infer missing fields from bodyStyle for vehicle searches
+    // "Dually" or "dual rear wheel" implies series="3500HD" (1-ton truck with dual rear wheels)
+    if (isVehicle && searchFilters) {
+      const bodyStyle = searchFilters.bodyStyle?.toLowerCase();
+      if ((bodyStyle === 'dually' || bodyStyle === 'dual rear wheel') && !searchFilters.series) {
+        searchFilters = { ...searchFilters, series: '3500HD' };
+        this.logger.log(`Inferred series="3500HD" from bodyStyle="${bodyStyle}"`);
+      }
+    }
 
     // Determine search query - use searchTerm for vehicle goals, fallback to title
     const searchQuery = isVehicle && goal.itemData?.searchTerm
@@ -292,7 +302,15 @@ export class ScraperService {
     if (determinedSeries) {
       // Strip "HD" suffix if present (3500HD -> 3500, 2500HD -> 2500)
       const seriesSlug = determinedSeries.toLowerCase().replace('hd', '');
-      basePath = `${modelSlug}-${seriesSlug}`;
+
+      // Check if model already contains the series number (e.g., "Sierra 3500" already has "3500")
+      // If so, just add "-hd" suffix, otherwise add the full series
+      if (modelSlug.includes(`-${seriesSlug}`) || modelSlug.endsWith(seriesSlug)) {
+        // Model already contains series number, just add HD suffix
+        basePath = `${modelSlug}-hd`;
+      } else {
+        basePath = `${modelSlug}-${seriesSlug}`;
+      }
     }
     pathSegments.push(basePath);
 
@@ -354,42 +372,65 @@ export class ScraperService {
     }
 
     const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
-    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
 
-    // Build path: /cars-for-sale/{make}/{model}-{series}/
-    let path = `https://www.autotrader.com/cars-for-sale/${makeSlug}/${modelSlug}`;
-
-    if (series) {
-      // Strip "HD" suffix for AutoTrader (3500HD -> 3500)
-      const seriesSlug = series.toLowerCase().replace('hd', '');
-      path = `${path}-${seriesSlug}`;
+    // Extract series from model if not provided (e.g., "Sierra 3500" -> series="3500")
+    let extractedSeries = series;
+    if (!extractedSeries) {
+      // Common patterns: "Sierra 1500", "Sierra 2500HD", "F-150", "F-250"
+      const seriesMatch = model.match(/\b(\d{3,4}[Hh]?[Dd]?)\b/);
+      if (seriesMatch) {
+        extractedSeries = seriesMatch[1].toUpperCase();
+      }
     }
+
+    // Build modelSlug - strip "HD"/"hd" from series numbers for AutoTrader URL format
+    // "Sierra 3500HD" -> "sierra-3500", "F-150" -> "f-150"
+    let modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+    // Remove HD/hd suffix from series numbers in the model slug
+    modelSlug = modelSlug.replace(/(\d{3,4})hd/gi, '$1');
+
+    // If series is provided separately and model doesn't already contain it, append it
+    // Example: model="Sierra", series="3500HD" -> "sierra-3500"
+    if (extractedSeries && !modelSlug.toLowerCase().includes(extractedSeries.toLowerCase().replace('hd', ''))) {
+      const seriesSlug = extractedSeries.toLowerCase().replace('hd', '');
+      modelSlug = `${modelSlug}-${seriesSlug}`;
+    }
+
+    // Build path: /cars-for-sale/all-cars/{make}/{model}/
+    // Using /all-cars/ to search both NEW and USED vehicles
+    let path = `https://www.autotrader.com/cars-for-sale/all-cars/${makeSlug}/${modelSlug}`;
 
     // Add default location (required for AutoTrader)
     path += '/san-mateo-ca';
 
     // Build query parameters
-    const params: string[] = ['searchRadius=500'];
+    const params: string[] = ['searchRadius=500', 'allListingType=all-cars'];
+
+    // Add makeCode and modelCode for better filtering
+    // AutoTrader uses these codes internally for filtering
+    params.push(`makeCode=${makeSlug.toUpperCase()}`);
+
+    // Build modelCode from make + model series (e.g., GMC + 3500 -> GMC3500PU)
+    // Note: extractedSeries might include HD (like "3500HD"), so remove "HD" for the code
+    if (extractedSeries) {
+      const seriesNumber = extractedSeries.replace('HD', '').replace('hd', '');
+      const modelCode = `${makeSlug.toUpperCase()}${seriesNumber}PU`;
+      params.push(`modelCode=${modelCode}`);
+    }
+
+    // Add state parameter
+    params.push('state=CA');
 
     // Add trimCode if trims provided
-    // Format: trimCode={seriesCode}|{trimName}
-    // Common series codes: GMC1500P, GMC2500P, GMC3500PU, F150, etc.
+    // AutoTrader format: {modelCode}|{trimName} (e.g., GMC3500PU|Denali Ultimate)
+    // Note: Only uses first trim as multiple trimCode params don't work correctly
     if (trims && Array.isArray(trims) && trims.length > 0) {
-      // Map series to series code
-      const seriesCodeMap: { [key: string]: string } = {
-        '1500': 'GMC1500P',
-        '2500hd': 'GMC2500P',
-        '3500hd': 'GMC3500PU',
-        '1500hd': 'GMC1500P',
-      };
-
-      // Get series code (default to make+model series if not found)
-      let seriesCode = seriesCodeMap[series?.toLowerCase()] || `${makeSlug}${modelSlug}`.toUpperCase();
-
-      // Add trim codes for each trim
-      for (const trim of trims.slice(0, 3)) { // Max 3 trim codes
-        const trimSlug = trim.replace(/\s+/g, ' ');
-        params.push(`trimCode=${encodeURIComponent(`${seriesCode}|${trimSlug}`)}`);
+      if (extractedSeries) {
+        const seriesNumber = extractedSeries.replace('HD', '').replace('hd', '');
+        const modelCode = `${makeSlug.toUpperCase()}${seriesNumber}PU`;
+        params.push(`trimCode=${modelCode}%7C${encodeURIComponent(trims[0])}`);
+      } else {
+        params.push(`trimCode=${encodeURIComponent(trims[0])}`);
       }
     }
 
@@ -403,77 +444,124 @@ export class ScraperService {
 
   /**
    * Build structured URL for KBB based on vehicle filters
-   * KBB URL format: /{make}/{model}-{series}-{bodyStyle}/{year}/{trim}/
+   * KBB "cars for sale" URL format: /cars-for-sale/{condition}/{bodyStyle}/{year}/{make}/{model}?bodyStyleSubtypeCodes={bodyType}
    * Examples:
-   *   - /gmc/sierra-3500-hd-crew-cab/2026/denali-ultimate/
-   *   - /ford/f-150/2025/xlt/
+   *   - /cars-for-sale/used/truck/2022/gmc/sierra-3500?bodyStyleSubtypeCodes=FULLSIZE_CREW
+   *   - /cars-for-sale/used/truck/2022/gmc/sierra-2500?bodyStyleSubtypeCodes=FULLSIZE_CREW
    *
-   * Note: KBB keeps "HD" suffix (3500-hd, not 3500) unlike CarMax
+   * Note: This goes to search results, NOT the research pages
    */
   private buildKBBUrl(filters: any): string {
-    const { make, model, year, series, trims, bodyStyle } = filters || {};
+    const { make, model, year, startYear, endYear, series, bodyStyle } = filters || {};
 
-    if (!make || !model || !year) {
+    // Use explicit year if provided, otherwise use startYear from year range
+    const urlYear = year || startYear;
+    if (!make || !model || !urlYear) {
       return null; // KBB requires year
     }
 
     const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
-    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+    let modelSlug = model.toLowerCase().replace(/\s+/g, '-');
 
-    // Build the model-series-bodyStyle path segment
-    let basePath = modelSlug;
-
-    if (series) {
-      // KBB keeps "HD" suffix (3500HD -> 3500-hd)
-      const seriesSlug = series.toLowerCase().replace(/\s+/g, '-');
-      basePath = `${basePath}-${seriesSlug}`;
+    // If series is provided separately and model doesn't already contain it, append it
+    // Example: model="Sierra", series="3500HD" -> "sierra-3500"
+    if (series && !modelSlug.toLowerCase().includes(series.toLowerCase().replace('hd', ''))) {
+      const seriesSlug = series.toLowerCase().replace('hd', '');
+      modelSlug = `${modelSlug}-${seriesSlug}`;
     }
 
-    // Add body style if provided (crew-cab, extended-cab, etc.)
+    // Build the cars-for-sale URL
+    // Format: /cars-for-sale/used/truck/{year}/{make}/{model}?bodyStyleSubtypeCodes={bodyType}
+    const basePath = `cars-for-sale/used/truck/${urlYear}/${makeSlug}/${modelSlug}`;
+
+    // Build query parameters
+    const params: string[] = [];
+
+    // Add year range if specified (4 years or newer)
+    if (startYear && endYear && !year) {
+      params.push(`startYear=${startYear}`);
+      params.push(`endYear=${endYear}`);
+    }
+
+    // Add body style subtype code for crew cab (most common for trucks)
     if (bodyStyle) {
-      const bodyStyleSlug = bodyStyle.toLowerCase().replace(/\s+/g, '-');
-      // Map common body styles to KBB format
-      const bodyStyleMap: { [key: string]: string } = {
-        'crew-cab': 'crew-cab',
-        'extended-cab': 'extended-cab',
-        'regular-cab': 'regular-cab',
-        'crew cab': 'crew-cab',
-        'extended cab': 'extended-cab',
-        'regular cab': 'regular-cab',
-        'double-cab': 'double-cab',
-        'access-cab': 'access-cab',
-      };
-      if (bodyStyleMap[bodyStyleSlug]) {
-        basePath = `${basePath}-${bodyStyleMap[bodyStyleSlug]}`;
+      const bodyStyleLower = bodyStyle.toLowerCase();
+      if (bodyStyleLower.includes('crew') || bodyStyleLower.includes('dually')) {
+        params.push('bodyStyleSubtypeCodes=FULLSIZE_CREW');
+      } else if (bodyStyleLower.includes('extended') || bodyStyleLower.includes('double')) {
+        params.push('bodyStyleSubtypeCodes=FULLSIZE_EXTENDED');
+      } else if (bodyStyleLower.includes('regular')) {
+        params.push('bodyStyleSubtypeCodes=REGULAR');
       }
+    } else {
+      // Default to crew cab
+      params.push('bodyStyleSubtypeCodes=FULLSIZE_CREW');
     }
 
-    // Build trim path segment
-    let trimSegment = '';
-    if (trims && Array.isArray(trims) && trims.length > 0) {
-      trimSegment = trims[0].toLowerCase().replace(/\s+/g, '-');
-    }
+    // Add search radius (nationwide)
+    params.push('searchRadius=500');
 
-    // Assemble URL: /{make}/{model-series-bodyStyle}/{year}/{trim}/
-    const url = `https://www.kbb.com/${makeSlug}/${basePath}/${year}/`;
-    return trimSegment ? `${url}${trimSegment}/` : url;
+    const url = `https://www.kbb.com/${basePath}?${params.join('&')}`;
+    return url;
   }
 
   /**
    * Build structured URL for TrueCar based on vehicle filters
-   * TrueCar URL format: /{make}/{model}/{year}/
+   * TrueCar URL format: /used-cars-for-sale/listings/inventory/?city={city}&mmt[]={make}_{model}-{series}_{trim}_{trim}&searchRadius={radius}&state={state}
+   * Example: https://www.truecar.com/used-cars-for-sale/listings/inventory/?city=south-san-francisco&mmt[]=gmc_sierra-3500hd_denali-ultimate_denali&searchRadius=5000&state=ca
+   *
+   * The mmt[] format is: {make}_{model}-{series}_{trim}_{trim} (trim is repeated)
    */
   private buildTrueCarUrl(filters: any): string {
-    const { make, model, year } = filters || {};
+    const { make, model, trims, series } = filters || {};
 
-    if (!make || !model || !year) {
-      return null; // TrueCar requires year
+    if (!make || !model) {
+      return null; // TrueCar requires make and model
     }
 
-    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
-    const modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+    // Extract series from model if not provided (e.g., "Sierra 3500" -> series="3500")
+    let extractedSeries = series;
+    if (!extractedSeries) {
+      // Common patterns: "Sierra 1500", "Sierra 2500HD", "F-150", "F-250"
+      const seriesMatch = model.match(/\b(\d{3,4}[Hh]?[Dd]?)\b/);
+      if (seriesMatch) {
+        extractedSeries = seriesMatch[1].toUpperCase();
+      }
+    }
+    const hasSeries = extractedSeries && extractedSeries !== '1500';
 
-    return `https://www.truecar.com/${makeSlug}/${modelSlug}/${year}/`;
+    // Build make slug (lowercase with hyphens)
+    const makeSlug = make.toLowerCase().replace(/\s+/g, '-');
+
+    // Build model slug (lowercase with hyphens)
+    let modelSlug = model.toLowerCase().replace(/\s+/g, '-');
+
+    // Append series to model if present (e.g., "sierra-3500hd")
+    if (hasSeries) {
+      const seriesSlug = extractedSeries.toLowerCase().replace(/\s+/g, '-');
+      modelSlug = `${modelSlug}-${seriesSlug}`;
+    }
+
+    // Build the mmt parameter: {make}_{model-series}_{trim}_{trim}
+    // The trim is repeated in TrueCar's format
+    let mmtValue = `${makeSlug}_${modelSlug}`;
+
+    // Add trims if provided (repeat the trim as per TrueCar's format)
+    if (trims && Array.isArray(trims) && trims.length > 0) {
+      const trimSlug = trims[0].toLowerCase().replace(/\s+/g, '-');
+      // TrueCar repeats the trim: denali-ultimate_denali
+      mmtValue += `_${trimSlug}_${trimSlug}`;
+    }
+
+    // Build query parameters
+    const params: string[] = [
+      `mmt[]=${mmtValue}`,
+      'city=south-san-francisco',
+      'searchRadius=5000',
+      'state=ca'
+    ];
+
+    return `https://www.truecar.com/used-cars-for-sale/listings/inventory/?${params.join('&')}`;
   }
 
   /**
@@ -490,11 +578,26 @@ export class ScraperService {
       const pythonPath = 'python3';
       const baseDir = '/home/trill/Development/neon-goals-service/scripts';
 
+      // Ensure DISPLAY is set for Camoufox (needed for headless=False mode)
+      const execEnv = {
+        ...process.env,
+        DISPLAY: process.env.DISPLAY || ':0',
+        // Ensure camoufox can find its configs
+        HOME: process.env.HOME,
+      };
+
       // Build structured URLs for scrapers that support it
+      // For KBB and TrueCar, add default year range if not specified (4 years ago to current year)
+      const currentYear = new Date().getFullYear();
+      const fourYearsAgo = currentYear - 4;
+      const vehicleDataWithDefaults = vehicleData && !vehicleData.year
+        ? { ...vehicleData, startYear: fourYearsAgo, endYear: currentYear }
+        : vehicleData;
+
       const carMaxUrl = vehicleData?.make && vehicleData?.model ? this.buildCarMaxUrl(vehicleData) : null;
       const autoTraderUrl = vehicleData?.make && vehicleData?.model ? this.buildAutoTraderUrl(vehicleData) : null;
-      const kbbUrl = vehicleData?.make && vehicleData?.model && vehicleData?.year ? this.buildKBBUrl(vehicleData) : null;
-      const trueCarUrl = vehicleData?.make && vehicleData?.model && vehicleData?.year ? this.buildTrueCarUrl(vehicleData) : null;
+      const kbbUrl = vehicleDataWithDefaults?.make && vehicleDataWithDefaults?.model ? this.buildKBBUrl(vehicleDataWithDefaults) : null;
+      const trueCarUrl = vehicleData?.make && vehicleData?.model ? this.buildTrueCarUrl(vehicleData) : null;
 
       // Build scraper configs with custom URLs where available
       const scrapers = [
@@ -513,9 +616,13 @@ export class ScraperService {
       if (trueCarUrl) this.logger.log(`📍 TrueCar: ${trueCarUrl}`);
       if (vehicleData?.make) this.logger.log(`📍 Carvana: Interactive filter selection for ${vehicleData.make} ${vehicleData.model || ''}`);
 
-      // Run all scrapers in parallel
+      // Run all scrapers with staggered delays to avoid rate limiting
+      // AutoTrader blocks when multiple requests hit simultaneously
       const results = await Promise.allSettled(
-        scrapers.map(async (scraper) => {
+        scrapers.map(async (scraper, index) => {
+          // Add random delay before each scraper (0-5 seconds staggered by index)
+          const delay = (index * 1000) + Math.random() * 2000;
+          await new Promise(resolve => setTimeout(resolve, delay));
           try {
             let searchArg;
             let cmdArgs = '5';
@@ -525,8 +632,9 @@ export class ScraperService {
               // TrueCar: pass JSON filters for mmt[] parameter format
               searchArg = JSON.stringify(vehicleData);
             } else if (scraper.name === 'CarMax' && scraper.url) {
-              // CarMax: use the structured URL we built
+              // CarMax: use the structured URL we built + pass filters for result validation
               searchArg = scraper.url;
+              cmdArgs = `5 '${JSON.stringify(vehicleData)}'`;
             } else if (scraper.name === 'AutoTrader' && scraper.url) {
               // AutoTrader: use the structured URL we built with trimCode
               searchArg = scraper.url;
@@ -549,7 +657,10 @@ export class ScraperService {
 
             const { stdout, stderr } = await execPromise(
               `${pythonPath} ${scraper.script} '${searchArg}' ${cmdArgs}`,
-              { timeout: 120000 }
+              {
+                timeout: 120000,
+                env: execEnv,
+              }
             );
 
             if (stderr && !stderr.includes('[') && !stderr.includes('Launching')) {
