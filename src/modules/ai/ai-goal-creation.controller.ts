@@ -5,6 +5,7 @@ import { PrismaService } from '../../config/prisma.service';
 import { GoalCommandService } from './goal-command.service';
 import { ChatsService } from '../chats/chats.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('ai/goal-chat')
@@ -43,7 +44,7 @@ export class AiGoalChatController {
 }
 
 @Controller('ai/overview')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ApiKeyGuard)  // Allow both JWT and API key auth
 export class AiOverviewController {
   constructor(
     private openaiService: OpenAIService,

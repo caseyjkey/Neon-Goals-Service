@@ -10,10 +10,11 @@ import {
 } from '@nestjs/common';
 import { ChatsService } from './chats.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('chats')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ApiKeyGuard)  // Allow both JWT and API key auth
 export class ChatsController {
   constructor(private chatsService: ChatsService) {}
 

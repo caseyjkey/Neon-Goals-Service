@@ -12,10 +12,11 @@ import {
 import { GoalsService } from './goals.service';
 import { ScraperService } from '../scraper/scraper.service';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
+import { ApiKeyGuard } from '../../common/guards/api-key.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 
 @Controller('goals')
-@UseGuards(JwtAuthGuard)
+@UseGuards(JwtAuthGuard, ApiKeyGuard)  // Allow both JWT and API key auth
 export class GoalsController {
   constructor(
     private goalsService: GoalsService,
