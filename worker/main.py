@@ -72,58 +72,21 @@ def run_scraper_and_callback(
 
         logger.info(f"Running command: {' '.join(command)}")
 
-        # Run the scraper using Popen so we can send i3-msg for tabbed layout
-        env = {
-            **os.environ,
-            "DISPLAY": os.environ.get("DISPLAY", ":0"),
-            "XAUTHORITY": os.environ.get("XAUTHORITY", "/home/alpha/.Xauthority"),
-        }
-
-        process = subprocess.Popen(
+        # Run the scraper and capture output
+        result = subprocess.run(
             command,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
+            capture_output=True,
             text=True,
-            env=env
+            timeout=180,  # 3 minute timeout
+            env={
+                **os.environ,
+                "DISPLAY": os.environ.get("DISPLAY", ":0"),
+                "XAUTHORITY": os.environ.get("XAUTHORITY", "/home/alpha/.Xauthority"),
+            }
         )
 
-        # Wait a moment for kitty window to appear, then switch to tabbed layout
-        import time
-        time.sleep(0.5)
-        try:
-            subprocess.run(
-                ["i3-msg", '[window_class="scraper-window"]', "layout", "tabbed"],
-                capture_output=True,
-                timeout=5
-            )
-            logger.info("Set i3 layout to tabbed for scraper window")
-        except Exception as e:
-            logger.warning(f"Failed to set i3 layout: {e}")
-
-        # Wait for process to complete
-        try:
-            stdout, stderr = process.communicate(timeout=180)
-        except subprocess.TimeoutExpired:
-            process.kill()
-            stdout, stderr = process.communicate()
-            error_msg = f"Scraper timeout after 180 seconds"
-            logger.error(error_msg)
-
-            requests.post(
-                callback_url,
-                json={
-                    "jobId": job_id,
-                    "scraper": scraper_name,
-                    "status": "error",
-                    "error": error_msg,
-                    "data": None
-                },
-                timeout=10
-            )
-            return
-
-        if process.returncode != 0:
-            error_msg = stderr or "Unknown error"
+        if result.returncode != 0:
+            error_msg = result.stderr or "Unknown error"
             logger.error(f"Scraper failed: {error_msg}")
 
             # Send error callback
@@ -142,7 +105,7 @@ def run_scraper_and_callback(
 
         # Parse the JSON output
         try:
-            listings = stdout.strip()
+            listings = result.stdout.strip()
             if not listings:
                 raise ValueError("Empty output from scraper")
 
@@ -181,6 +144,22 @@ def run_scraper_and_callback(
                 },
                 timeout=10
             )
+
+    except subprocess.TimeoutExpired:
+        error_msg = f"Scraper timeout after 180 seconds"
+        logger.error(error_msg)
+
+        requests.post(
+            callback_url,
+            json={
+                "jobId": job_id,
+                "scraper": scraper_name,
+                "status": "error",
+                "error": error_msg,
+                "data": None
+            },
+            timeout=10
+        )
 
     except Exception as e:
         logger.error(f"Failed to run scraper: {e}")
