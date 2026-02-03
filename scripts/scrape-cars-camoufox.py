@@ -188,8 +188,9 @@ async def scrape_cars(query: str, max_results: int = 3):
 
     finally:
         # Wait before closing so we can see what happened
-        logging.error("Scraping complete, waiting 3 seconds before closing...")
-        await asyncio.sleep(3)
+        # CarGurus may run bot detection that takes time to complete
+        logging.error("Scraping complete, waiting 15 seconds before closing...")
+        await asyncio.sleep(15)
 
         # Close browser
         if browser:

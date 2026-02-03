@@ -67,6 +67,8 @@ def run_scraper_and_callback(
             "--class", "scraper-window",  # Tag window for i3 recognition
             "--single-instance",
             "--instance-group", "scrapers",
+            "--override", "initial_window_width=1300",  # Fit within 1366 width
+            "--override", "initial_window_height=700",   # Fit within 768 height
             python_bin, script_path, f"'{query}'", "5"  # Query must be quoted, 5 = max results
         ]
 
