@@ -220,7 +220,7 @@ async def trigger_scraper(
 
     # Build callback URL from origin IP
     origin_ip = request.client.host
-    callback_url = f"http://{origin_ip}:3000/scrapers/callback"
+    callback_url = f"http://{origin_ip}:3001/scrapers/callback"
 
     logger.info(f"Dispatching scraper: {scraper_name} for job {job_id}")
     logger.info(f"Query: {query}")
