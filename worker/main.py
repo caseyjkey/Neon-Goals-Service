@@ -62,6 +62,7 @@ def run_scraper_and_callback(
         # Use pyenv Python 3.12 which has camoufox installed
         python_bin = "/home/alpha/.pyenv/versions/3.12.0/bin/python3.12"
         command = [
+            "env", "LD_PRELOAD=/lib/libpthread.so.0",
             "kitty",
             "--class", "scraper-window",  # Tag window for i3 recognition
             "--single-instance",
