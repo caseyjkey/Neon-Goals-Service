@@ -54,9 +54,25 @@ async def scrape_cars(query: str, max_results: int = 3):
         ).__aenter__()
 
         page = await browser.new_page()
-        logging.error("Browser launched, navigating to CarGurus")
+        logging.error("Browser launched, navigating to CarGurus homepage first")
 
-        # Use direct search URL (more reliable than homepage search box)
+        # STEP 1: Visit homepage first to build session/trust
+        await page.goto("https://www.cargurus.com", wait_until='domcontentloaded', timeout=30000)
+        logging.error("Homepage loaded, waiting to simulate human behavior...")
+        await asyncio.sleep(3)  # Wait like a human reading the page
+
+        # Scroll a bit to look more human
+        try:
+            await page.evaluate("window.scrollBy(0, 300)")
+            await asyncio.sleep(1)
+            await page.evaluate("window.scrollBy(0, -200)")
+            await asyncio.sleep(1)
+        except:
+            pass
+
+        logging.error("Now navigating to search results...")
+
+        # STEP 2: Navigate to search results
         search_url = f"https://www.cargurus.com/Cars/inventorylisting/viewDetailsFilterViewInventoryListing.action?zip=90210&distance=50000&searchQuery={query.replace(' ', '+')}"
         logging.error(f"Navigating to: {search_url}")
         await page.goto(search_url, wait_until='domcontentloaded', timeout=30000)
@@ -77,6 +93,26 @@ async def scrape_cars(query: str, max_results: int = 3):
 
         # Check for "No results found" condition
         page_text = await page.inner_text('body')
+
+        # Check for access restriction/bot detection
+        restricted_indicators = [
+            'access is temporarily restricted',
+            'Access restricted',
+            'suspicious activity',
+            'bot detection',
+            'please verify you are human',
+            'we need to make sure you are not a robot'
+        ]
+        if any(indicator in page_text.lower() for indicator in restricted_indicators):
+            logging.error(f"[CarGurus] Access restricted by bot detection!")
+            # Take screenshot for debugging
+            try:
+                await page.screenshot(path='/tmp/cargurus-restricted.png')
+                logging.error("Screenshot saved to /tmp/cargurus-restricted.png")
+            except:
+                pass
+            return [{"error": "Access restricted - bot detection"}]
+
         no_results_indicators = [
             'No matching vehicles',
             'No results found',

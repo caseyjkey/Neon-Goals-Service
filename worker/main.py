@@ -21,6 +21,7 @@ SCRIPTS_BASE_DIR = os.path.join(SCRAPER_BASE_DIR, "scripts")
 
 # Scraper script mapping
 SCRAPER_SCRIPTS: Dict[str, str] = {
+    "cargurus-camoufox": "scrape-cars-camoufox.py",
     "carmax": "scrape-carmax.py",
     "autotrader": "scrape-autotrader.py",
     "kbb": "scrape-kbb.py",
