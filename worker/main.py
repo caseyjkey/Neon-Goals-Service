@@ -77,10 +77,9 @@ def run_scraper_and_callback(
                 python_bin, script_path, filters_json, "5"
             ]
         elif scraper_name == "cargurus-camoufox" and vehicle_filters:
-            # CarGurus works better with searchFilters format
-            # Build searchFilters from vehicle_filters dict
+            # Wrap in {"structured": ...} for scrape-cars-camoufox.py to detect
             import json as json_mod
-            filters_json = json_mod.dumps(vehicle_filters)
+            filters_json = json_mod.dumps({"structured": vehicle_filters})
             command = [
                 "env", "LD_PRELOAD=/lib/libpthread.so.0",
                 "kitty",
@@ -447,7 +446,8 @@ def run_single_scraper(
             ]
         elif scraper_name == "cargurus-camoufox" and vehicle_filters:
             import json as json_mod
-            filters_json = json_mod.dumps(vehicle_filters)
+            # Wrap in {"structured": ...} for scrape-cars-camoufox.py to detect
+            filters_json = json_mod.dumps({"structured": vehicle_filters})
             command = [
                 "env", "LD_PRELOAD=/lib/libpthread.so.0",
                 "kitty",

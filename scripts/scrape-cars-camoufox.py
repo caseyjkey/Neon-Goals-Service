@@ -517,7 +517,7 @@ async def main():
             "error": "Usage: scrape-cars-camoufox.py <JSON filters or structured> [max_results]",
             "examples": [
                 '{"make": "GMC", "model": "Yukon", "zip": "94002", "trim": "Denali Ultimate"}',
-                "'{\"structured\": {...}}\'  # From parse_vehicle_query.py'
+                '{"structured": {"makes": ["GMC"], "models": ["Sierra"]}}'  # From parse_vehicle_query.py"
             ]
         }))
         sys.exit(1)
