@@ -37,7 +37,7 @@ logging.basicConfig(
 )
 
 from camoufox.async_api import AsyncCamoufox
-from camoufox.async_api import Screen
+from browserforge.fingerprints import Screen
 from dotenv import load_dotenv
 
 # Load environment variables

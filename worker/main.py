@@ -113,6 +113,10 @@ def run_scraper_and_callback(
             }
         )
 
+        # Wait a moment for scraper to finish writing to temp file
+        import time
+        time.sleep(2)
+
         if result.returncode != 0:
             error_msg = result.stderr or "Unknown error"
             logger.error(f"Scraper failed: {error_msg}")
@@ -134,6 +138,19 @@ def run_scraper_and_callback(
         # Parse the JSON output
         try:
             listings = result.stdout.strip()
+            if not listings:
+                # Try to read from temp file as fallback
+                import glob
+                temp_files = glob.glob("/tmp/scraper_output_*.json")
+                if temp_files:
+                    # Get the most recently modified file
+                    latest_file = max(temp_files, key=os.path.getmtime)
+                    with open(latest_file, 'r') as f:
+                        listings = f.read().strip()
+                    logger.info(f"Recovered output from temp file: {latest_file}")
+                    # Clean up temp file
+                    os.remove(latest_file)
+
             if not listings:
                 raise ValueError("Empty output from scraper")
 
@@ -473,6 +490,10 @@ def run_single_scraper(
             }
         )
 
+        # Wait a moment for scraper to finish writing to temp file
+        import time
+        time.sleep(2)
+
         if result.returncode != 0:
             error_msg = result.stderr or "Unknown error"
             logger.error(f"Scraper {scraper_name} failed: {error_msg}")
@@ -485,14 +506,13 @@ def run_single_scraper(
             # Try to read from temp file as fallback
             try:
                 import glob
-                import os
                 temp_files = glob.glob("/tmp/scraper_output_*.json")
                 if temp_files:
                     # Get the most recently modified file
                     latest_file = max(temp_files, key=os.path.getmtime)
                     with open(latest_file, 'r') as f:
                         listings = f.read().strip()
-                    logger.info(f"Recovered output from temp file for {scraper_name}")
+                    logger.info(f"Recovered output from temp file for {scraper_name}: {latest_file}")
                     # Clean up temp file
                     os.remove(latest_file)
             except Exception as e:
