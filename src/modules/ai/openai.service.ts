@@ -739,22 +739,83 @@ When a user wants to buy an item, you MUST:
 CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","budget":<number>,"category":"<category>","searchTerm":"<search-term>","searchFilters":{<filters>}}
 \`\`\`
 
+**Universal Structured Format for Vehicles (single source of truth):**
+The system uses a universal structured format for vehicle searches. Each scraper has its own adapter to convert this to scraper-specific parameters.
+
+\`\`\`
+{
+  "makes": ["GMC"],                    // Array of makes (multiple supported by some scrapers)
+  "models": ["Sierra"],                // Array of models
+  "trims": ["Denali", "Denali Ultimate"], // Array of trim preferences
+  "year": null,                        // Single year
+  "yearMin": 2015,                     // Year range start
+  "yearMax": 2025,                     // Year range end
+  "minPrice": 10000,                   // Min price
+  "maxPrice": 50000,                   // Max price/budget
+  "drivetrain": "Four Wheel Drive",    // Human-readable (adapters convert to scraper codes)
+  "fuelType": "Diesel",                // Human-readable (adapters convert to scraper codes)
+  "bodyType": "Pickup Trucks",         // Body type
+  "transmission": "Automatic",
+  "exteriorColor": "Black",            // Human-readable color name
+  "interiorColor": "Gray",
+  "features": ["Seat Massagers", "Sunroof"], // Additional features
+  "location": {
+    "zip": "94002",
+    "distance": 200,
+    "city": null,
+    "state": null
+  }
+}
+\`\`\`
+
+**Scraper Adapters (converts universal format to scraper-specific):**
+- **CarMax**: makes[], models[], trims[], colors[], bodyType, fuelType, drivetrain
+- **CarGurus**: make (single), model (single), drivetrain → FOUR_WHEEL_DRIVE, fuelType → DIESEL
+- **AutoTrader**: Converts to text query "GMC Sierra Denali near 94002"
+- **TrueCar**: make, model, trims[], year/yearMin/yearMax, budget, bodyStyle
+- **Carvana**: make, model, trims[], year
+
+**Important**: When extracting vehicle searchFilters, use the universal structured format above. The scraper service will handle the conversion to scraper-specific parameters.
+
 **searchFilters structure (all fields OPTIONAL, varies by category):**
 \`\`\`
-// Vehicles:
+// Vehicles (Universal format - adapters handle scraper conversion):
 {
   "category": "vehicle",
-  "make": "GMC",           // Brand
-  "model": "Sierra",       // Model name
-  "year": 2025,            // Specific year
-  "trims": ["Denali"],     // ARRAY - user can specify multiple!
-  "series": "3500HD",      // Truck series
-  "colors": ["Black"],     // ARRAY - multiple colors
-  "bodyStyle": "Crew Cab",
-  "drivetrain": "4WD",
-  "fuelType": "Diesel",
-  "transmission": "Auto"
+  "makes": ["GMC"],                // Array of makes
+  "models": ["Sierra"],            // Array of models
+  "trims": ["Denali", "AT4"],      // Array of trim preferences
+  "year": 2025,                    // Single year OR use yearMin/yearMax for range
+  "yearMin": 2015,                 // Year range start
+  "yearMax": 2025,                 // Year range end
+  "minPrice": 10000,               // Min price
+  "maxPrice": 50000,               // Max budget
+  "mileageMax": 50000,             // Max mileage
+  "drivetrain": "Four Wheel Drive",// Human-readable format
+  "fuelType": "Diesel",           // Human-readable format
+  "bodyType": "Pickup Trucks",
+  "transmission": "Automatic",
+  "exteriorColor": "Black",
+  "interiorColor": "Gray",
+  "features": ["Seat Massagers", "Tow Hitch", "Sunroof"],
+  "location": {
+    "zip": "94002",
+    "distance": 200,
+    "city": null,
+    "state": null
+  }
 }
+
+// IMPORTANT: trims is an array of trim names (e.g., ["Denali Ultimate", "SLE", "AT4"])
+// Drivetrain is a SEPARATE filter - do NOT include "4WD" or "AWD" in trim values!
+// Examples:
+// - trims: ["Denali Ultimate"] (correct)
+// - trims: ["Denali Ultimate 4WD"] (WRONG - 4WD goes in drivetrain field)
+
+// Valid drivetrain values (human-readable): Four Wheel Drive, All Wheel Drive, Four by Two (4X2), Rear Wheel Drive, Front Wheel Drive
+// Valid exterior colors (human-readable): Black, White, Gray, Blue, Silver, Red, Brown, Gold, Green
+// Valid interior colors (human-readable): Black, Gray, Brown, White
+// Valid fuel types (human-readable): Gas, Diesel, Flex Fuel Vehicle, Hybrid, Plug-In Hybrid, Electric
 
 // Technology:
 {
@@ -786,27 +847,33 @@ CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","bud
 - **Motorcycles**: Harley, Honda, Kawasaki, Ducati, etc.
 
 **Extraction examples (with category):**
-- "I want to buy a 2025 GMC Sierra Denali 3500 Dually" → {category:"vehicle",make:"GMC",model:"Sierra",year:2025,trims:["Denali"],series:"3500HD",searchTerm:"2025 GMC Sierra Denali 3500 dually"}
-- "I want either a Denali or Denali Ultimate" → {category:"vehicle",make:"GMC",model:"Sierra",trims:["Denali","Denali Ultimate"]}
-- "I want a Ford F-150" → {category:"vehicle",make:"Ford",model:"F-150",searchTerm:"Ford F-150"}
-- "Looking for a Tesla Model 3" → {category:"vehicle",make:"Tesla",model:"Model 3",searchTerm:"Tesla Model 3"}
-- "Want a Honda CR-V" → {category:"vehicle",make:"Honda",model:"CR-V",searchTerm:"Honda CR-V"}
-- "Just want a Denali truck" → {category:"vehicle",make:"GMC",model:"Sierra",trims:["Denali"],searchTerm:"GMC Sierra Denali"}
-- "Need a red or black truck" → {category:"vehicle",colors:["red","black"],searchTerm:"red or black truck"}
-- "Looking for a diesel dually" → {category:"vehicle",fuelType:"Diesel",bodyStyle:"Dually",series:"3500HD"}
-- "GMC Sierra Denali Dually" → {category:"vehicle",make:"GMC",model:"Sierra 3500",trims:["Denali"],series:"3500HD",bodyStyle:"Dually",searchTerm:"GMC Sierra Denali 3500 dually"}
+- "I want to buy a 2025 GMC Sierra Denali Ultimate 3500 under $50k, max 50k miles" → {category:"vehicle",makes:["GMC"],models:["Sierra 3500"],trims:["Denali Ultimate"],year:2025,maxPrice:50000,mileageMax:50000,searchTerm:"2025 GMC Sierra Denali Ultimate 3500"}
+- "I want either a Denali or Denali Ultimate" → {category:"vehicle",makes:["GMC"],models:["Sierra"],trims:["Denali","Denali Ultimate"]}
+- "I want a Ford F-150 under $30k within 100 miles of 94002" → {category:"vehicle",makes:["Ford"],models:["F-150"],location:{zip:"94002",distance:100},maxPrice:30000,searchTerm:"Ford F-150 under 30000"}
+- "Looking for a Tesla Model 3, white exterior" → {category:"vehicle",makes:["Tesla"],models:["Model 3"],exteriorColor:"White",searchTerm:"Tesla Model 3 white"}
+- "Want a Honda CR-V with AWD within 50 miles" → {category:"vehicle",makes:["Honda"],models:["CR-V"],drivetrain:"All Wheel Drive",location:{distance:50},searchTerm:"Honda CR-V AWD"}
+- "Just want a Denali truck near me" → {category:"vehicle",makes:["GMC"],models:["Sierra"],trims:["Denali"],searchTerm:"GMC Sierra Denali"}
+- "Need a red or black truck" → {category:"vehicle",exteriorColor:"Red",searchTerm:"red or black truck"}
+- "Looking for a diesel dually" → {category:"vehicle",fuelType:"Diesel",makes:["GMC"],models:["Sierra 3500"],searchTerm:"diesel dually truck"}
+- "GMC Sierra Denali Dually" → {category:"vehicle",makes:["GMC"],models:["Sierra 3500"],trims:["Denali"],searchTerm:"GMC Sierra Denali 3500 dually"}
 - "MacBook Pro with 16GB RAM" → {category:"technology",brands:["Apple"],minRam:"16GB",searchTerm:"MacBook Pro 16GB RAM"}
+- "2015-2020 Toyota 4Runner under $25k" → {category:"vehicle",makes:["Toyota"],models:["4Runner"],yearMin:2015,yearMax:2020,maxPrice:25000,searchTerm:"2015-2020 Toyota 4Runner"}
 
 **Inference rules:**
-- "Denali" → make="GMC", model="Sierra", trims=["Denali"]
-- "Escalade" → make="Cadillac", model="Escalade"
-- "dually" or "dual rear wheel" → bodyStyle="Dually" AND series="3500HD" (ALWAYS extract series for dually!)
-- "3500HD", "3500", "1 ton" → series="3500HD"
-- "2500HD", "2500", "3/4 ton" → series="2500HD"
-- "1500", "150", "half ton" → series="1500"
-- "Lariat", "Platinum", "Limited", "Denali Ultimate" → add to trims ARRAY
-- User can specify multiple trims: "Denali or AT4" → trims=["Denali","AT4"]
-- User can specify multiple colors: "Black or White" → colors=["Black","White"]
+- "Denali" → makes=["GMC"], models=["Sierra"], trims=["Denali"]
+- "Denali Ultimate" → makes=["GMC"], models=["Sierra"], trims=["Denali Ultimate"]
+- "Escalade" → makes=["Cadillac"], models=["Escalade"]
+- "AWD" or "All-Wheel Drive" → drivetrain="All Wheel Drive"
+- "4WD" or "Four-Wheel Drive" → drivetrain="Four Wheel Drive"
+- "4x2" or "2WD" → drivetrain="Four by Two (4X2)"
+- "dually" or "dual rear wheel" → models=["Sierra 3500"]
+- "3500HD", "3500", "1 ton" → models=["Sierra 3500"]
+- "2500HD", "2500", "3/4 ton" → models=["Sierra 2500"]
+- "1500", "150", "half ton" → models=["Sierra 1500"]
+- "Lariat", "Platinum", "Limited", "AT4 Ultimate" → trim values (add to trims array)
+- User can say "Denali or AT4" → Add both to trims array: ["Denali", "AT4"]
+- Colors should use exteriorColor with Title Case: "Black", "White", "Gray", "Blue", "Silver", "Red", "Brown", "Gold", "Green"
+- Fuel types: "Gas", "Diesel", "Flex Fuel Vehicle", "Hybrid", "Plug-In Hybrid", "Electric"
 
 **Create a subgoal (under an existing goal):**
 \`\`\`
@@ -826,7 +893,7 @@ UPDATE_PROGRESS: {"goalId":"<goal-id>","completionPercentage":50}
 **Modify existing goals:**
 \`\`\`
 UPDATE_TITLE: {"goalId":"<goal-id>","title":"<new title>"}
-UPDATE_FILTERS: {"goalId":"<goal-id>","filters":{"maxPrice":50000,"maxMileage":30000}}
+UPDATE_FILTERS: {"goalId":"<goal-id>","filters":{"zip":"94002","distance":200,"yearMin":2015,"yearMax":2022,"maxPrice":50000,"mileageMax":50000,"drivetrain":"Four Wheel Drive","exteriorColor":"Black"}}
 ADD_TASK: {"goalId":"<goal-id>","task":{"title":"<task title>","priority":"medium"}}
 REMOVE_TASK: {"taskId":"<task-id>"}
 TOGGLE_TASK: {"taskId":"<task-id>"}

@@ -24,9 +24,9 @@ SCRAPER_SCRIPTS: Dict[str, str] = {
     "cargurus-camoufox": "scrape-cars-camoufox.py",
     "carmax": "scrape-carmax.py",
     "autotrader": "scrape-autotrader.py",
-    "kbb": "scrape-kbb.py",
     "truecar": "scrape-truecar.py",
     "carvana": "scrape-carvana-interactive.py",
+    # KBB deprecated - uses same Cox Automotive API as AutoTrader
 }
 
 
@@ -273,6 +273,242 @@ async def trigger_scraper(
     }
 
 
+@app.post("/run-all")
+async def trigger_all_scrapers(
+    request: Request,
+    background_tasks: BackgroundTasks
+):
+    """
+    Run all vehicle scrapers in parallel and combine results into one callback.
+
+    This is the preferred method for vehicle searches as it aggregates results
+    from all sources (CarGurus, CarMax, AutoTrader, TrueCar, Carvana).
+    """
+    # Get request body
+    body = await request.json()
+
+    job_id = body.get("jobId")
+    query = body.get("query")
+    vehicle_filters = body.get("vehicleFilters")
+
+    if not job_id:
+        raise HTTPException(status_code=400, detail="Missing required field: jobId")
+
+    if not query:
+        raise HTTPException(status_code=400, detail="Missing required field: query")
+
+    # Build callback URL from origin IP
+    origin_ip = request.client.host
+    callback_url = f"http://{origin_ip}:3001/scrapers/callback"
+
+    logger.info(f"Dispatching ALL scrapers for job {job_id}")
+    logger.info(f"Query: {query}")
+    logger.info(f"Callback URL: {callback_url}")
+
+    # Add background task to run all scrapers
+    background_tasks.add_task(
+        run_all_scrapers_and_callback,
+        query,
+        vehicle_filters,
+        job_id,
+        callback_url
+    )
+
+    return {
+        "status": "dispatched",
+        "jobId": job_id,
+        "scrapers": list(SCRAPER_SCRIPTS.keys()),
+        "message": f"Running all {len(SCRAPER_SCRIPTS)} scrapers in background"
+    }
+
+
+def run_all_scrapers_and_callback(
+    query: str,
+    vehicle_filters: Optional[Dict[str, Any]],
+    job_id: str,
+    callback_url: str
+) -> None:
+    """
+    Run all scrapers in parallel and combine results into one callback.
+    """
+    import asyncio
+    import concurrent.futures
+
+    all_results = []
+    errors = []
+
+    logger.info(f"Starting all scrapers for job {job_id}")
+
+    # Run all scrapers in parallel using threads
+    with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
+        futures = {}
+
+        for scraper_name in SCRAPER_SCRIPTS.keys():
+            future = executor.submit(
+                run_single_scraper,
+                scraper_name,
+                query,
+                vehicle_filters,
+                job_id
+            )
+            futures[future] = scraper_name
+
+        # Wait for all to complete
+        for future in concurrent.futures.as_completed(futures, timeout=600):
+            scraper_name = futures[future]
+            try:
+                result = future.result()
+                if result and len(result) > 0:
+                    all_results.extend(result)
+                    logger.info(f"✅ {scraper_name}: {len(result)} listings")
+                else:
+                    logger.warn(f"⚠️ {scraper_name}: No results")
+            except Exception as e:
+                error_msg = f"{scraper_name}: {str(e)}"
+                errors.append(error_msg)
+                logger.error(f"❌ {error_msg}")
+
+    logger.info(f"Total listings from all scrapers: {len(all_results)}")
+
+    # Send combined callback
+    try:
+        if len(all_results) > 0:
+            requests.post(
+                callback_url,
+                json={
+                    "jobId": job_id,
+                    "scraper": "all",
+                    "status": "success",
+                    "error": None,
+                    "data": all_results
+                },
+                timeout=10
+            )
+            logger.info(f"✅ Sent combined callback with {len(all_results)} listings")
+        else:
+            # No results from any scraper
+            error_message = f"No listings found. Errors: {'; '.join(errors) if errors else 'All scrapers returned empty'}"
+            requests.post(
+                callback_url,
+                json={
+                    "jobId": job_id,
+                    "scraper": "all",
+                    "status": "error",
+                    "error": error_message,
+                    "data": None
+                },
+                timeout=10
+            )
+            logger.error(f"❌ Sent error callback: {error_message}")
+
+    except Exception as callback_error:
+        logger.error(f"Failed to send callback: {callback_error}")
+
+
+def run_single_scraper(
+    scraper_name: str,
+    query: str,
+    vehicle_filters: Optional[Dict[str, Any]],
+    job_id: str
+) -> list:
+    """
+    Run a single scraper and return its results (without callback).
+
+    Used by run_all_scrapers_and_callback to run scrapers in parallel.
+    """
+    try:
+        logger.info(f"Starting scraper: {scraper_name}")
+
+        # Get the script path
+        script_name = SCRAPER_SCRIPTS.get(scraper_name)
+        if not script_name:
+            raise ValueError(f"Unknown scraper: {scraper_name}")
+
+        script_path = os.path.join(SCRIPTS_BASE_DIR, script_name)
+
+        if not os.path.exists(script_path):
+            raise FileNotFoundError(f"Script not found: {script_path}")
+
+        # Build the command for Kitty
+        python_bin = "/home/alpha/.pyenv/versions/3.12.0/bin/python3.12"
+
+        # Different scrapers expect different parameter formats
+        if scraper_name in ["truecar", "carvana"]:
+            import json as json_mod
+            filters = {"search": query}
+            filters_json = json_mod.dumps(filters)
+            command = [
+                "env", "LD_PRELOAD=/lib/libpthread.so.0",
+                "kitty",
+                "--class", "scraper-window",
+                "--single-instance",
+                "--instance-group", "scrapers",
+                python_bin, script_path, filters_json, "5"
+            ]
+        elif scraper_name == "cargurus-camoufox" and vehicle_filters:
+            import json as json_mod
+            filters_json = json_mod.dumps(vehicle_filters)
+            command = [
+                "env", "LD_PRELOAD=/lib/libpthread.so.0",
+                "kitty",
+                "--class", "scraper-window",
+                "--single-instance",
+                "--instance-group", "scrapers",
+                python_bin, script_path, filters_json, "5"
+            ]
+        else:
+            command = [
+                "env", "LD_PRELOAD=/lib/libpthread.so.0",
+                "kitty",
+                "--class", "scraper-window",
+                "--single-instance",
+                "--instance-group", "scrapers",
+                python_bin, script_path, f"'{query}'", "5"
+            ]
+
+        logger.info(f"Running command: {' '.join(command)}")
+
+        # Run the scraper and capture output
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            timeout=180,  # 3 minute timeout per scraper
+            env={
+                **os.environ,
+                "DISPLAY": os.environ.get("DISPLAY", ":0"),
+                "XAUTHORITY": os.environ.get("XAUTHORITY", "/home/alpha/.Xauthority"),
+            }
+        )
+
+        if result.returncode != 0:
+            error_msg = result.stderr or "Unknown error"
+            logger.error(f"Scraper {scraper_name} failed: {error_msg}")
+            return []
+
+        # Parse the JSON output
+        listings = result.stdout.strip()
+        if not listings:
+            logger.warn(f"Empty output from {scraper_name}")
+            return []
+
+        data = eval(listings)  # Safe here as we control the scraper output
+
+        if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict) and "error" in data[0]:
+            logger.error(f"{scraper_name} returned error: {data[0]['error']}")
+            return []
+
+        logger.info(f"{scraper_name} returned {len(data)} listings")
+        return data
+
+    except subprocess.TimeoutExpired:
+        logger.error(f"{scraper_name} timeout after 180 seconds")
+        return []
+    except Exception as e:
+        logger.error(f"Failed to run {scraper_name}: {e}")
+        return []
+
+
 @app.get("/")
 async def root():
     """Root endpoint with service information."""
@@ -283,6 +519,7 @@ async def root():
         "endpoints": {
             "health": "/health",
             "run_scraper": "/run/{scraper_name}",
+            "run_all": "/run-all",
             "docs": "/docs"
         }
     }

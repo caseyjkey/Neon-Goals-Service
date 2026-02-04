@@ -30,6 +30,46 @@ def extract_number(text: str) -> int:
         return 0
 
 
+def adapt_structured_to_carvana(structured: dict) -> str:
+    """
+    Convert structured query format to Carvana search query string.
+
+    The structured format is the universal format output by parse_vehicle_query.py.
+    Each scraper has its own adapter to convert this to scraper-specific params.
+
+    Carvana specifics:
+    - Uses text-based search query (like "GMC Sierra Denali black")
+    - URL format: /cars/make-model-slug
+    - For advanced filtering, use scrape-carvana-interactive.py instead
+
+    Args:
+        structured: The structured query dict with keys like makes, models, trims, etc.
+
+    Returns:
+        Carvana search query string
+    """
+    parts = []
+
+    # Add make/model/trim
+    if structured.get('makes'):
+        parts.extend(structured['makes'])
+
+    if structured.get('models'):
+        parts.extend(structured['models'])
+
+    if structured.get('trims'):
+        parts.extend(structured['trims'])
+
+    # Add color
+    if structured.get('exteriorColor'):
+        parts.append(structured['exteriorColor'])
+
+    # Build query
+    query = ' '.join(parts)
+
+    return query
+
+
 async def scrape_carvana(query: str, max_results: int = 10):
     results = []
 
@@ -176,11 +216,36 @@ async def scrape_carvana(query: str, max_results: int = 10):
 
 async def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-carvana.py <search query>"}))
+        print(json.dumps({
+            "error": "Usage: scrape-carvana.py <query/URL/structured> [max_results]",
+            "examples": [
+                "scrape-carvana.py 'GMC Sierra Denali'",
+                "scrape-carvana.py 'https://www.carvana.com/cars/gmc-sierra-3500'",
+                "scrape-carvana.py '{\"structured\": {...}}'  # From parse_vehicle_query.py"
+            ]
+        }))
         sys.exit(1)
 
-    query = sys.argv[1]
+    query_input = sys.argv[1]
     max_results = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+
+    # Parse input to determine if it's URL, structured JSON, or plain query
+    query = query_input
+
+    if query_input.strip().startswith('{'):
+        # Structured JSON format from parse_vehicle_query.py
+        try:
+            structured_data = json.loads(query_input)
+            if 'structured' in structured_data:
+                # Use adapter to convert structured to Carvana query
+                query = adapt_structured_to_carvana(structured_data['structured'])
+            else:
+                query = query_input  # Use as-is
+        except json.JSONDecodeError:
+            query = query_input
+    elif not query_input.startswith('http'):
+        # Plain text query - use as-is
+        query = query_input
 
     try:
         result = await scrape_carvana(query, max_results)

@@ -38,20 +38,45 @@ export class ScraperService {
 
   /**
    * Queue a scraping job for a goal
+   * Only queues for vehicle category - other categories are skipped
    */
   async queueCandidateAcquisition(goalId: string): Promise<void> {
+    // Get the goal to check its category
+    const goal = await this.prisma.goal.findUnique({
+      where: { id: goalId },
+      include: { itemData: true },
+    });
+
+    if (!goal || !goal.itemData) {
+      this.logger.warn(`Goal ${goalId} not found or has no itemData, skipping scrape job queue`);
+      return;
+    }
+
+    const category = goal.itemData?.category;
+
+    // Only queue for vehicle category - other scrapers not yet implemented
+    if (category !== 'vehicle') {
+      this.logger.log(`⏭️ Skipping scrape job for "${goal.title}" - category "${category}" not yet supported (only vehicle is supported)`);
+      // Update statusBadge to not_supported
+      await this.prisma.itemGoalData.update({
+        where: { goalId },
+        data: { statusBadge: 'not_supported' },
+      });
+      return;
+    }
+
     await this.prisma.scrapeJob.create({
       data: {
         goalId,
         status: 'pending',
       },
     });
-    this.logger.log(`Queued scraping job for goal: ${goalId}`);
+    this.logger.log(`✅ Queued scraping job for vehicle goal: ${goalId}`);
   }
 
   /**
    * Background job processor - runs every 2 minutes
-   * Dispatches jobs to remote worker (Gilbert) instead of running locally
+   * Dispatches jobs to remote worker (Gilbert) for vehicle category only
    */
   @Cron('*/2 * * * *')
   async processPendingJobs() {
@@ -78,12 +103,11 @@ export class ScraperService {
 
     for (const job of jobs) {
       try {
-        // Check if category is supported
+        // Only support vehicle category - other scrapers not yet implemented
         const category = job.goal.itemData?.category || 'general';
-        const supportedCategories = ['vehicle', 'technology', 'furniture', 'sporting_goods', 'clothing', 'pets', 'vehicle_parts'];
 
-        if (!supportedCategories.includes(category)) {
-          this.logger.log(`⏭️ Skipping goal "${job.goal.title}" - category "${category}" not yet supported`);
+        if (category !== 'vehicle') {
+          this.logger.log(`⏭️ Skipping goal "${job.goal.title}" - category "${category}" not yet supported (only vehicle is supported)`);
 
           // Update statusBadge to not_supported for unsupported categories
           await this.prisma.itemGoalData.update({
@@ -96,13 +120,13 @@ export class ScraperService {
             where: { id: job.id },
             data: {
               status: 'completed',
-              error: `Category "${category}" not yet supported. Supported: ${supportedCategories.join(', ')}`,
+              error: `Category "${category}" not yet supported. Only vehicle category is supported.`,
             },
           });
           continue;
         }
 
-        // Dispatch to remote worker instead of running locally
+        // Dispatch to remote worker
         await this.dispatchJobToWorker(job.id);
 
       } catch (error) {
@@ -559,7 +583,6 @@ export class ScraperService {
 
       const carMaxUrl = vehicleData?.make && vehicleData?.model ? this.buildCarMaxUrl(vehicleData) : null;
       const autoTraderUrl = vehicleData?.make && vehicleData?.model ? this.buildAutoTraderUrl(vehicleData) : null;
-      const kbbUrl = vehicleDataWithDefaults?.make && vehicleDataWithDefaults?.model ? this.buildKBBUrl(vehicleDataWithDefaults) : null;
       const trueCarUrl = vehicleData?.make && vehicleData?.model ? this.buildTrueCarUrl(vehicleData) : null;
 
       // Build scraper configs with custom URLs where available
@@ -567,15 +590,13 @@ export class ScraperService {
         { name: 'CarGurus', script: `${baseDir}/scrape-cars-camoufox.py`, url: null },
         { name: 'CarMax', script: `${baseDir}/scrape-carmax.py`, url: carMaxUrl },
         { name: 'AutoTrader', script: `${baseDir}/scrape-autotrader.py`, url: autoTraderUrl },
-        { name: 'KBB', script: `${baseDir}/scrape-kbb.py`, url: kbbUrl },
         { name: 'TrueCar', script: `${baseDir}/scrape-truecar.py`, url: trueCarUrl },
         { name: 'Carvana', script: `${baseDir}/scrape-carvana-interactive.py`, url: null, useJsonFilters: true },
       ];
 
-      this.logger.log(`🦊 Running all 6 camoufox scrapers for: ${query}`);
+      this.logger.log(`🦊 Running all 5 camoufox scrapers for: ${query}`);
       if (carMaxUrl) this.logger.log(`📍 CarMax: ${carMaxUrl}`);
       if (autoTraderUrl) this.logger.log(`📍 AutoTrader: ${autoTraderUrl}`);
-      if (kbbUrl) this.logger.log(`📍 KBB: ${kbbUrl}`);
       if (trueCarUrl) this.logger.log(`📍 TrueCar: ${trueCarUrl}`);
       if (vehicleData?.make) this.logger.log(`📍 Carvana: Interactive filter selection for ${vehicleData.make} ${vehicleData.model || ''}`);
 
@@ -989,6 +1010,7 @@ export class ScraperService {
 
   /**
    * Dispatch a scraping job to the remote worker
+   * For vehicles, uses /run-all to run all scrapers in parallel
    */
   async dispatchJobToWorker(goalId: number): Promise<void> {
     const job = await this.prisma.scrapeJob.findUnique({
@@ -1009,26 +1031,15 @@ export class ScraperService {
     const workerUrl = 'http://100.91.29.119:5000';
     const query = job.goal.itemData?.searchTerm || job.goal.title;
     const vehicleFilters = job.goal.itemData?.searchFilters || null;
-
-    // Determine which scraper to use based on category
     const category = job.goal.itemData?.category || 'general';
 
-    // Map category to scraper name
-    const scraperMap: Record<string, string> = {
-      'vehicle': 'cargurus-camoufox', // Default for vehicles
-      'technology': 'browser-use',
-      'furniture': 'browser-use',
-      'sporting_goods': 'browser-use',
-      'clothing': 'browser-use',
-      'pets': 'browser-use',
-      'vehicle_parts': 'browser-use',
-    };
-
-    const scraperName = scraperMap[category] || 'browser-use';
+    // For vehicles, use /run-all endpoint to run all scrapers in parallel
+    // For other categories, we should not get here (they're filtered out in queueCandidateAcquisition)
+    const endpoint = category === 'vehicle' ? '/run-all' : '/run/browser-use';
 
     try {
       await firstValueFrom(
-        this.httpService.post(`${workerUrl}/run/${scraperName}`, {
+        this.httpService.post(`${workerUrl}${endpoint}`, {
           jobId: job.id,
           query,
           vehicleFilters: vehicleFilters,
@@ -1041,7 +1052,8 @@ export class ScraperService {
         data: { status: 'running' },
       });
 
-      this.logger.log(`✅ Dispatched job ${job.id} to worker (scraper: ${scraperName})`);
+      const scrapersDesc = category === 'vehicle' ? 'all scrapers' : endpoint;
+      this.logger.log(`✅ Dispatched job ${job.id} to worker (${scrapersDesc})`);
     } catch (error) {
       this.logger.error(`Failed to dispatch job ${job.id}: ${error.message}`);
 

@@ -24,6 +24,68 @@ def extract_number(text: str) -> int:
         return 0
 
 
+def adapt_structured_to_truecar(structured: dict) -> dict:
+    """
+    Convert structured query format to TrueCar-specific parameters.
+
+    The structured format is the universal format output by parse_vehicle_query.py.
+    Each scraper has its own adapter to convert this to scraper-specific params.
+
+    TrueCar specifics:
+    - Uses mmt[] format for make/model/trim (make_model-series_trim)
+    - Supports yearHigh/yearLow for year ranges
+    - Uses budget for max price
+    - Has bodyStyle, drivetrain, fuelType filters
+
+    Args:
+        structured: The structured query dict with keys like makes, models, trims, etc.
+
+    Returns:
+        TrueCar-specific parameter dict for scrape_truecar()
+    """
+    params = {}
+
+    # Make (take first if multiple - TrueCar only supports single make)
+    if structured.get('makes'):
+        params['make'] = structured['makes'][0]
+
+    # Model (take first if multiple)
+    if structured.get('models'):
+        params['model'] = structured['models'][0]
+
+    # Trims (TrueCar takes single trim as first value)
+    if structured.get('trims'):
+        params['trims'] = [structured['trims'][0]]
+
+    # Year handling
+    if structured.get('year'):
+        params['year'] = structured['year']
+    else:
+        # Use yearMin/yearMax as startYear/endYear
+        if structured.get('yearMin'):
+            params['startYear'] = structured['yearMin']
+        if structured.get('yearMax'):
+            params['endYear'] = structured['yearMax']
+
+    # Price - TrueCar uses budget for max price
+    if structured.get('maxPrice'):
+        params['budget'] = structured['maxPrice']
+
+    # Body type
+    if structured.get('bodyType'):
+        params['bodyStyle'] = structured['bodyType']
+
+    # Drivetrain
+    if structured.get('drivetrain'):
+        params['drivetrain'] = structured['drivetrain']
+
+    # Fuel type
+    if structured.get('fuelType'):
+        params['fuelType'] = structured['fuelType']
+
+    return params
+
+
 async def scrape_truecar_graphql(search_filters: Dict[str, Any], max_results: int = 10) -> list:
     """
     Try TrueCar GraphQL API first (faster if it works)
@@ -342,7 +404,13 @@ async def scrape_truecar(search_filters: Optional[Dict[str, Any]] = None, max_re
 
 async def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-truecar.py <JSON filters> [max_results]"}))
+        print(json.dumps({
+            "error": "Usage: scrape-truecar.py <JSON filters or structured> [max_results]",
+            "examples": [
+                '{"make": "GMC", "model": "Sierra 3500", "trims": ["Denali"]}',
+                "'{\"structured\": {...}}'  # From parse_vehicle_query.py"
+            ]
+        }))
         sys.exit(1)
 
     arg = sys.argv[1]
@@ -350,6 +418,12 @@ async def main():
 
     try:
         search_filters = json.loads(arg)
+
+        # Check if this is a structured format from parse_vehicle_query.py
+        if 'structured' in search_filters:
+            # Use adapter to convert structured to TrueCar params
+            search_filters = adapt_structured_to_truecar(search_filters['structured'])
+
         result = await scrape_truecar(search_filters, max_results)
 
         if not result:

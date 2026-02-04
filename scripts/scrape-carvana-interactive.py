@@ -31,6 +31,45 @@ def extract_number(text: str) -> int:
         return 0
 
 
+def adapt_structured_to_carvana_interactive(structured: dict) -> dict:
+    """
+    Convert structured query format to Carvana interactive-specific parameters.
+
+    The structured format is the universal format output by parse_vehicle_query.py.
+    Each scraper has its own adapter to convert this to scraper-specific params.
+
+    Carvana interactive specifics:
+    - Takes individual parameters: make, model, series, trims, year
+    - Supports multiple trims as a list
+    - Uses UI interaction to select filters
+
+    Args:
+        structured: The structured query dict with keys like makes, models, trims, etc.
+
+    Returns:
+        Carvana-interactive-specific parameter dict
+    """
+    params = {}
+
+    # Make (take first if multiple)
+    if structured.get('makes'):
+        params['make'] = structured['makes'][0]
+
+    # Model (take first if multiple)
+    if structured.get('models'):
+        params['model'] = structured['models'][0]
+
+    # Trims (Carvana interactive supports list of trims)
+    if structured.get('trims'):
+        params['trims'] = structured['trims']
+
+    # Year
+    if structured.get('year'):
+        params['year'] = structured['year']
+
+    return params
+
+
 async def scrape_carvana_interactive(
     make: Optional[str] = None,
     model: Optional[str] = None,
@@ -434,13 +473,23 @@ async def scrape_carvana_interactive(
 
 async def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-carvana-interactive.py <json_filters> [max_results]"}))
-        print(json.dumps({"example": 'scrape-carvana-interactive.py \'{"make":"GMC","model":"Sierra 3500","trims":["Denali"]}\' 10'}))
+        print(json.dumps({
+            "error": "Usage: scrape-carvana-interactive.py <JSON filters or structured> [max_results]",
+            "examples": [
+                '{"make": "GMC", "model": "Sierra 3500", "trims": ["Denali"]}',
+                "'{\"structured\": {...}}'  # From parse_vehicle_query.py"
+            ]
+        }))
         sys.exit(1)
 
     try:
         filters = json.loads(sys.argv[1])
         max_results = int(sys.argv[2]) if len(sys.argv) > 2 else 10
+
+        # Check if this is a structured format from parse_vehicle_query.py
+        if 'structured' in filters:
+            # Use adapter to convert structured to Carvana interactive params
+            filters = adapt_structured_to_carvana_interactive(filters['structured'])
 
         result = await scrape_carvana_interactive(
             make=filters.get('make'),

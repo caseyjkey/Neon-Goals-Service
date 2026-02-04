@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 """
 AutoTrader scraper using Chrome CDP (primary) or Camoufox (fallback)
+
+Accepts structured query format (from parse_vehicle_query.py) and
+converts it to AutoTrader-specific parameters via the adapter function.
 """
 import json
 import sys
@@ -9,6 +12,7 @@ import re
 import random
 import time
 from pathlib import Path
+from typing import Dict
 
 logging.basicConfig(level=logging.ERROR, format='%(message)s', stream=sys.stderr)
 
@@ -26,6 +30,70 @@ try:
     CAMOUFOX_AVAILABLE = True
 except ImportError:
     CAMOUFOX_AVAILABLE = False
+
+
+def adapt_structured_to_autotrader(structured: dict) -> str:
+    """
+    Convert structured query format to AutoTrader search query string.
+
+    The structured format is the universal format output by parse_vehicle_query.py.
+    Each scraper has its own adapter to convert this to scraper-specific params.
+
+    AutoTrader specifics:
+    - Uses text-based search query (like "GMC Sierra Denali black")
+    - Supports make/model/trim/color combinations
+    - Location can be added with "near [zip]" or similar
+
+    Args:
+        structured: The structured query dict with keys like makes, models, trims, etc.
+
+    Returns:
+        AutoTrader search query string
+    """
+    parts = []
+
+    # Add make/model/trim
+    if structured.get('makes'):
+        parts.extend(structured['makes'])
+
+    if structured.get('models'):
+        # AutoTrader combines make and model nicely
+        for model in structured['models']:
+            parts.append(model)
+
+    if structured.get('trims'):
+        parts.extend(structured['trims'])
+
+    # Add color
+    if structured.get('exteriorColor'):
+        parts.append(structured['exteriorColor'])
+
+    # Add other key features as text
+    if structured.get('features'):
+        # Add notable features that help search
+        feature_keywords = {
+            'Seat Massagers': 'massaging seats',
+            'Sunroof': 'sunroof',
+            'Navigation': 'navigation',
+            'Tow Hitch': 'tow hitch'
+        }
+        for feature in structured['features']:
+            if feature in feature_keywords:
+                parts.append(feature_keywords[feature])
+
+    # Build query
+    query = ' '.join(parts)
+
+    # Add location if provided
+    location = structured.get('location', {})
+    if location.get('zip'):
+        query += f' near {location["zip"]}'
+    elif location.get('city'):
+        query += f' near {location["city"]}'
+        if location.get('state'):
+            query += f', {location["state"]}'
+
+    return query
 
 
 def extract_number(text: str) -> int:
@@ -357,13 +425,38 @@ def scrape_autotrader(query: str, max_results: int = 10, cdp_url: str = "http://
 
 def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-autotrader.py <URL or search query> [max_results] [cdp_url]"}))
-        print(json.dumps({"error": "Start Chrome with: google-chrome --remote-debugging-port=9222"}))
+        print(json.dumps({
+            "error": "Usage: scrape-autotrader.py <URL or search query or structured> [max_results] [cdp_url]",
+            "examples": [
+                "scrape-autotrader.py 'GMC Sierra Denali black'",
+                "scrape-autotrader.py 'https://www.autotrader.com/cars-for-sale/...'",
+                "scrape-autotrader.py '{\"structured\": {...}}'  # From parse_vehicle_query.py"
+            ],
+            "note": "Start Chrome with: google-chrome --remote-debugging-port=9222"
+        }))
         sys.exit(1)
 
-    query = sys.argv[1]
+    query_input = sys.argv[1]
     max_results = int(sys.argv[2]) if len(sys.argv) > 2 else 10
     cdp_url = sys.argv[3] if len(sys.argv) > 3 else "http://localhost:9222"
+
+    # Parse input to determine format
+    query = query_input
+
+    if query_input.strip().startswith('{'):
+        # Structured JSON format from parse_vehicle_query.py
+        try:
+            structured_data = json.loads(query_input)
+            if 'structured' in structured_data:
+                # Use adapter to convert structured to AutoTrader query
+                query = adapt_structured_to_autotrader(structured_data['structured'])
+            else:
+                query = query_input  # Use as-is
+        except json.JSONDecodeError:
+            query = query_input
+    elif not query_input.startswith('http'):
+        # Plain text query - use as-is
+        query = query_input
 
     try:
         result = scrape_autotrader(query, max_results, cdp_url)

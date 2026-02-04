@@ -15,21 +15,22 @@ SCRIPTS_DIR = Path(__file__).parent
 
 # Test cases: (name, script, query, max_results)
 TEST_CASES = [
+    # CarGurus test
+    ("CarGurus - GMC Sierra Denali Ultimate", "scrape-cars-camoufox.py",
+     '{"make": "GMC", "model": "Sierra 3500HD", "trim": "Denali Ultimate", "zip": "94002", "distance": 200}', 3),
+
     # AutoTrader tests
-    ("AutoTrader (CDP) - GMC Sierra Denali", "scrape-autotrader.py",
+    ("AutoTrader - GMC Sierra Denali", "scrape-autotrader.py",
      "GMC Sierra Denali Ultimate", 5),
 
     # CarMax test
     ("CarMax - GMC Sierra", "scrape-carmax.py",
      "https://www.carmax.com/cars/gmc/sierra", 3),
 
-    # KBB test
-    ("KBB - GMC Sierra", "scrape-kbb.py",
-     "https://www.kbb.com/cars-for-sale/used/gmc/sierra", 3),
-
     # TrueCar test
     ("TrueCar - GMC Sierra", "scrape-truecar.py",
      "https://www.truecar.com/used-cars-for-sale/listings/inventory/?city=south-san-francisco&mmt[]=gmc_sierra&searchRadius=5000&state=ca", 3),
+    # KBB deprecated - uses same Cox Automotive API as AutoTrader
 ]
 
 

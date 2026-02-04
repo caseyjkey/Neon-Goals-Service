@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """
 CarMax scraper using Camoufox (VISIBLE MODE - headless doesn't work)
-Uses exact selectors found via chrome-devtools analysis
+Supports multiple makes/models and structured URL building with filter catalog
+
+Accepts structured query format (from parse_vehicle_query.py) and
+converts it to CarMax-specific parameters via the adapter function.
 """
 import asyncio
 import json
@@ -9,6 +12,7 @@ import sys
 import logging
 import re
 from pathlib import Path
+from typing import List, Dict, Optional
 
 logging.basicConfig(level=logging.ERROR, format='%(message)s', stream=sys.stderr)
 
@@ -17,6 +21,225 @@ from dotenv import load_dotenv
 
 env_path = Path(__file__).parent.parent / '.env'
 load_dotenv(env_path)
+
+# Filter catalog path
+FILTER_CATALOG_PATH = Path(__file__).parent / 'data' / 'carmax-filters.json'
+
+# Cache for filter catalog
+_filter_catalog = None
+
+
+def adapt_structured_to_carmax(structured: dict) -> dict:
+    """
+    Convert structured query format to CarMax-specific parameters.
+
+    The structured format is the universal format output by parse_vehicle_query.py.
+    Each scraper has its own adapter to convert this to scraper-specific params.
+
+    Args:
+        structured: The structured query dict with keys like makes, models, trims, etc.
+
+    Returns:
+        CarMax-specific parameter dict compatible with build_carmax_url()
+    """
+    params = {}
+
+    # Make/Model pairs (CarMax supports multiple)
+    makes = structured.get('makes', [])
+    models = structured.get('models', [])
+    if makes and models:
+        # Ensure equal length - zip to pairs
+        min_len = min(len(makes), len(models))
+        params['makes'] = makes[:min_len]
+        params['models'] = models[:min_len]
+
+    # Trims (make/model specific)
+    if structured.get('trims'):
+        params['trims'] = structured['trims']
+
+    # Colors (exterior or interior - CarMax treats both as colors)
+    colors = []
+    if structured.get('exteriorColor'):
+        colors.append(structured['exteriorColor'])
+    if structured.get('interiorColor'):
+        colors.append(structured['interiorColor'])
+    if colors:
+        params['colors'] = colors
+
+    # Body type (global filter)
+    if structured.get('bodyType'):
+        params['body_type'] = structured['bodyType']
+
+    # Fuel type (global filter)
+    if structured.get('fuelType'):
+        params['fuel_type'] = structured['fuelType']
+
+    # Drivetrain (global filter)
+    if structured.get('drivetrain'):
+        params['drivetrain'] = structured['drivetrain']
+
+    # Transmission
+    if structured.get('transmission'):
+        params['transmission'] = structured['transmission']
+
+    # Car size
+    if structured.get('carSize'):
+        params['car_size'] = structured['carSize']
+
+    # Doors
+    if structured.get('doors'):
+        params['doors'] = structured['doors']
+
+    # Cylinders
+    if structured.get('cylinders'):
+        params['cylinders'] = structured['cylinders']
+
+    # Features (array - CarMax supports chaining)
+    if structured.get('features'):
+        params['features'] = structured['features']
+
+    # Price range
+    if structured.get('minPrice') is not None:
+        params['min_price'] = structured['minPrice']
+    if structured.get('maxPrice') is not None:
+        params['max_price'] = structured['maxPrice']
+
+    # Year handling - CarMax doesn't have year filters in URL,
+    # but we can note it for post-filtering results
+    # (not implemented here)
+
+    return params
+
+
+def load_filter_catalog() -> dict:
+    """Load the CarMax filter catalog."""
+    global _filter_catalog
+    if _filter_catalog is not None:
+        return _filter_catalog
+
+    if FILTER_CATALOG_PATH.exists():
+        with open(FILTER_CATALOG_PATH, 'r') as f:
+            _filter_catalog = json.load(f)
+        return _filter_catalog
+
+    # Return empty catalog if file doesn't exist
+    _filter_catalog = {'filters': {}}
+    return _filter_catalog
+
+
+def get_filters_for_model(make: str, model: str) -> dict:
+    """Get available filters for a specific make/model."""
+    catalog = load_filter_catalog()
+    make = make.lower().replace(' ', '-').replace('land-rover', 'land-rover')
+    model = model.lower().replace(' ', '-')
+
+    return catalog.get('filters', {}).get(make, {}).get(model, {
+        'trims': [],
+        'colors': [],
+        'drivetrains': [],
+        'features': [],
+        'fuel_types': []
+    })
+
+
+def slugify(value: str) -> str:
+    """Convert a value to URL-friendly slug format."""
+    return value.lower().replace(' ', '-').replace('_', '-')
+
+
+def get_global_filters() -> dict:
+    """Get global filter options (agnostic of make/model)."""
+    catalog = load_filter_catalog()
+    return catalog.get('global_filters', {
+        'body_types': [], 'fuel_types': [], 'drivetrains': [],
+        'transmissions': [], 'exterior_colors': [], 'interior_colors': [],
+        'car_sizes': [], 'doors': [], 'cylinders': [], 'features': []
+    })
+
+
+def build_carmax_url(
+    makes: Optional[List[str]] = None,
+    models: Optional[List[str]] = None,
+    trims: Optional[List[str]] = None,
+    colors: Optional[List[str]] = None,
+    body_type: Optional[str] = None,
+    fuel_type: Optional[str] = None,
+    drivetrain: Optional[str] = None,
+    transmission: Optional[str] = None,
+    car_size: Optional[str] = None,
+    doors: Optional[str] = None,
+    cylinders: Optional[str] = None,
+    features: Optional[List[str]] = None,
+    min_price: Optional[int] = None,
+    max_price: Optional[int] = None,
+    show_reserved: bool = False
+) -> str:
+    """
+    Build a CarMax URL with multiple makes/models and global filters.
+
+    CarMax URL format (filters can be chained in any order):
+    /cars/{make}/{model}/{body_type}/{fuel_type}/{feature}/{trim}/{color}?price={min}-{max}&showreservedcars={true|false}
+
+    Examples:
+    - Single make/model: /cars/gmc/sierra-3500?showreservedcars=false
+    - Multiple makes: /cars/gmc/sierra-3500/ford/f-150?showreservedcars=false
+    - With body type: /cars/suv?showreservedcars=false
+    - With features: /cars/gmc/sierra-3500/seat-massagers/sunroof?showreservedcars=false
+    - Complex: /cars/gmc/sierra-3500/denali/black/four-wheel-drive?price=20000-40000&showreservedcars=false
+    """
+    parts = ['cars']
+
+    # Add make/model pairs if provided (CarMax supports multiple!)
+    if makes and models:
+        for make, model in zip(makes, models):
+            parts.append(slugify(make))
+            parts.append(slugify(model))
+
+    # Add global filters (CarMax allows chaining these)
+    if body_type:
+        parts.append(slugify(body_type))
+    if fuel_type:
+        parts.append(slugify(fuel_type))
+    if drivetrain:
+        parts.append(slugify(drivetrain))
+    if transmission:
+        parts.append(slugify(transmission))
+    if car_size:
+        parts.append(slugify(car_size))
+    if doors:
+        parts.append(slugify(doors))
+    if cylinders:
+        parts.append(slugify(cylinders))
+    if features:
+        for feature in features:
+            parts.append(slugify(feature))
+
+    # Add trims (make/model specific)
+    if trims:
+        for trim in trims:
+            parts.append(slugify(trim))
+
+    # Add colors (can be exterior or interior)
+    if colors:
+        for color in colors:
+            parts.append(slugify(color))
+
+    # Build URL with query params
+    url = f"https://www.carmax.com/{'/'.join(parts)}"
+
+    # Add query parameters
+    params = []
+    if min_price is not None or max_price is not None:
+        min_str = str(min_price) if min_price else ''
+        max_str = str(max_price) if max_price else ''
+        params.append(f"price={min_str}-{max_str}")
+
+    params.append(f"showreservedcars={'true' if show_reserved else 'false'}")
+
+    if params:
+        url += '?' + '&'.join(params)
+
+    return url
 
 
 def extract_number(text: str) -> int:
@@ -43,72 +266,8 @@ def parse_data_clickprops(props_str: str) -> dict:
     return data
 
 
-def vehicle_matches_filters(name: str, expected_model: str, expected_series: str) -> bool:
-    """
-    Check if a vehicle name matches the expected model and series.
-    Examples:
-    - "2024 GMC Sierra 3500 Denali Ultimate" with model="Sierra 3500", series="HD" -> True
-    - "2024 GMC Sierra 2500 Denali Ultimate" with model="Sierra 3500", series="HD" -> False
-    - "2024 GMC Yukon Denali Ultimate" with model="Sierra 3500", series="HD" -> False
-
-    Note: CarMax doesn't include "HD" in vehicle names (e.g., "Sierra 3500 HD" appears as "Sierra 3500")
-    So if the model matches and we're looking for HD, we accept it even without HD in the name.
-    """
-    if not expected_model and not expected_series:
-        return True  # No filtering if no criteria specified
-
-    name_lower = name.lower()
-
-    # Check model match (e.g., "Sierra 3500")
-    if expected_model:
-        # Model should be present in the name
-        # Normalize both for comparison: "sierra-3500" vs "Sierra 3500"
-        normalized_expected = expected_model.replace('-', ' ').replace('_', ' ')
-        if normalized_expected not in name_lower:
-            return False
-
-        # Model matched - now check if series requires additional filtering
-        # For Sierra trucks, if we're looking for a specific series number, exclude others
-        if 'sierra' in normalized_expected:
-            # Extract the series number from expected model (e.g., "3500" from "sierra 3500")
-            expected_number = None
-            for num in ['1500', '2500', '3500']:
-                if num in normalized_expected:
-                    expected_number = num
-                    break
-
-            if expected_number:
-                # Reject other Sierra series
-                for other_num in ['1500', '2500', '3500']:
-                    if other_num != expected_number and f'sierra {other_num}' in name_lower:
-                        return False  # Wrong Sierra series
-
-    # Check series match (e.g., "HD" for Sierra 3500HD)
-    # IMPORTANT: CarMax names don't include "HD" - they show "Sierra 3500" for HD trucks
-    # So if the model already matched above, we don't need to check for "HD" in the name
-    # Just accept the model match as sufficient for HD series
-    if expected_series:
-        if expected_series == 'hd':
-            # Already validated model above, CarMax doesn't put "HD" in names
-            # Model match (e.g., "Sierra 3500") is sufficient
-            pass  # Accept the vehicle
-        elif expected_series.lower() not in name_lower:
-            return False
-
-    return True
-
-
 async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: dict = None):
     results = []
-
-    # Extract expected model/series for filtering
-    expected_model = None
-    expected_series = None
-    if search_filters:
-        expected_model = search_filters.get('model', '').lower()
-        expected_series = search_filters.get('series', '').lower()
-
-    logging.error(f"[CarMax] Expected model: {expected_model}, series: {expected_series}")
 
     # IMPORTANT: headless=False because camoufox crashes in headless mode
     browser = await AsyncCamoufox(headless=False, humanize=True).__aenter__()
@@ -116,11 +275,55 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
     try:
         page = await browser.new_page()
 
-        # Check if search_arg is a URL or a query
+        # Build URL based on search filters or use provided URL
         if search_arg.startswith('http'):
-            # Direct URL provided (structured URL from vehicle fields)
+            # Direct URL provided
             search_url = search_arg
             logging.error(f"[CarMax] Using structured URL: {search_url}")
+        elif search_filters:
+            # Build URL from search filters (supports global filters + makes/models)
+            makes = search_filters.get('makes', [])
+            models = search_filters.get('models', [])
+
+            # Ensure equal length for makes/models if both provided
+            if makes and models:
+                min_len = min(len(makes), len(models))
+                makes = makes[:min_len]
+                models = models[:min_len]
+
+            # Extract all filter parameters
+            trims = search_filters.get('trims', [])
+            colors = search_filters.get('colors', [])
+            body_type = search_filters.get('bodyType')
+            fuel_type = search_filters.get('fuelType')
+            drivetrain = search_filters.get('drivetrain')
+            transmission = search_filters.get('transmission')
+            car_size = search_filters.get('carSize')
+            doors = search_filters.get('doors')
+            cylinders = search_filters.get('cylinders')
+            features = search_filters.get('features', [])
+            min_price = search_filters.get('minPrice')
+            max_price = search_filters.get('maxPrice')
+
+            # Build URL with all applicable filters
+            search_url = build_carmax_url(
+                makes=makes if makes else None,
+                models=models if models else None,
+                trims=trims if trims else None,
+                colors=colors if colors else None,
+                body_type=body_type,
+                fuel_type=fuel_type,
+                drivetrain=drivetrain,
+                transmission=transmission,
+                car_size=car_size,
+                doors=doors,
+                cylinders=cylinders,
+                features=features if features else None,
+                min_price=min_price,
+                max_price=max_price,
+                show_reserved=False
+            )
+            logging.error(f"[CarMax] Built URL from filters: {search_url}")
         else:
             # Fallback to text search
             search_url = f"https://www.carmax.com/cars/all?search={search_arg.replace(' ', '+')}"
@@ -147,13 +350,33 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
 
         # Find all car tiles using the selector we discovered
         tiles = await page.query_selector_all('.kmx-car-tile')
-        logging.error(f"[CarMax] Found {len(tiles)} listings")
+        logging.error(f"[CarMax] Found {len(tiles)} total listings")
 
-        # When filtering by model/series, we need to process more tiles since many will be filtered out
-        # Process up to 50 tiles to find matches, then limit results at the end
-        process_limit = max(50, max_results * 10) if search_filters else max_results
+        # Find the recommendations section to exclude those listings
+        recommendations_section = await page.query_selector('[aria-label="recommendations"]')
 
-        for i, tile in enumerate(tiles[:process_limit]):
+        # Filter out tiles that are inside the recommendations section
+        filtered_tiles = []
+        for tile in tiles:
+            try:
+                # Check if this tile is inside the recommendations section
+                if recommendations_section:
+                    # Check if the recommendations section is an ancestor of this tile
+                    is_in_recommendations = await tile.evaluate(
+                        'el => document.querySelector(\'[aria-label="recommendations"]\').contains(el)'
+                    )
+                    if not is_in_recommendations:
+                        filtered_tiles.append(tile)
+                else:
+                    filtered_tiles.append(tile)
+            except:
+                # If check fails, include the tile
+                filtered_tiles.append(tile)
+
+        logging.error(f"[CarMax] Found {len(filtered_tiles)} main listings (excluded {len(tiles) - len(filtered_tiles)} recommendations)")
+
+        # Process filtered tiles
+        for i, tile in enumerate(filtered_tiles[:max_results]):
             try:
                 # Method 1: Extract from data-clickprops (most reliable for price/stock)
                 clickprops = await tile.get_attribute('data-clickprops')
@@ -177,7 +400,7 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
                 # Try to extract the full vehicle name from all_text
                 # Look for pattern like "2024 GMC Sierra 3500 Denali Ultimate"
                 # This is typically the first meaningful line before the price
-                name_match = re.search(r'(20\d{2}\s+gmc\s+sierra\s+\d{4}.+?)(?=\n|$)', all_text, re.IGNORECASE)
+                name_match = re.search(r'(20\d{2}\s+.+?)(?=\n|$)', all_text, re.IGNORECASE)
                 if name_match:
                     full_name = name_match.group(1).strip()
                     # Clean up the name (remove extra whitespace)
@@ -216,13 +439,6 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
                 if location_match:
                     location = f"CarMax {location_match.group(1)}, {location_match.group(2)}"
 
-                # Validate that this result matches our search filters
-                # Only add results that match the expected model and series
-                # Debug: log the full name being checked
-                if not vehicle_matches_filters(name, expected_model, expected_series):
-                    logging.error(f"[CarMax] SKIP (doesn't match filters): '{name}' (looking for: '{expected_model}' series: '{expected_series}')")
-                    continue
-
                 if price > 0:
                     results.append({
                         'name': name.strip(),
@@ -254,18 +470,57 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
 
 async def main():
     if len(sys.argv) < 2:
-        print(json.dumps({"error": "Usage: scrape-carmax.py <search query or URL> [max_results] [search_filters_json]"}))
+        print(json.dumps({
+            "error": "Usage: scrape-carmax.py <query/URL/structured> [max_results]",
+            "examples": [
+                "scrape-carmax.py 'GMC Sierra under $50000'",
+                "scrape-carmax.py 'https://www.carmax.com/cars/gmc/sierra-3500'",
+                "scrape-carmax.py '{\"structured\": {...}}'  # From parse_vehicle_query.py"
+            ]
+        }))
         sys.exit(1)
 
-    query = sys.argv[1]
+    query_input = sys.argv[1]
     max_results = int(sys.argv[2]) if len(sys.argv) > 2 else 10
-    search_filters = json.loads(sys.argv[3]) if len(sys.argv) > 3 else None
+
+    # Parse input to determine if it's URL, structured JSON, or plain query
+    search_filters = None
+    search_arg = query_input
+
+    if query_input.startswith('http'):
+        # Direct URL
+        search_arg = query_input
+    elif query_input.strip().startswith('{'):
+        # Structured JSON format from parse_vehicle_query.py
+        try:
+            structured_data = json.loads(query_input)
+            if 'structured' in structured_data:
+                # Use adapter to convert structured to CarMax params
+                search_filters = adapt_structured_to_carmax(structured_data['structured'])
+                search_arg = structured_data.get('query', 'Structured search')
+            else:
+                # Direct filter dict (backward compatibility)
+                search_filters = structured_data
+                search_arg = 'Filter search'
+        except json.JSONDecodeError:
+            search_arg = query_input
+    else:
+        # Plain text query - could be legacy format or just text
+        # Check if it's a legacy JSON filters string
+        try:
+            filters = json.loads(query_input)
+            if isinstance(filters, dict):
+                search_filters = filters
+                search_arg = 'Filter search'
+        except json.JSONDecodeError:
+            # Plain text query
+            search_arg = query_input
 
     try:
-        result = await scrape_carmax(query, max_results, search_filters)
+        result = await scrape_carmax(search_arg, max_results, search_filters)
 
         if not result:
-            print(json.dumps({"error": f"No CarMax listings found for '{query}'"}))
+            print(json.dumps({"error": f"No CarMax listings found for '{search_arg}'"}))
         else:
             print(json.dumps(result, indent=2))
     except Exception as e:

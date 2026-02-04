@@ -1,0 +1,7490 @@
+{
+  "version": "2.0",
+  "last_updated": "2026-02-03T18:02:53.585778",
+  "global_filters": {
+    "body_types": [
+      "Convertibles",
+      "Coupes",
+      "Hatchbacks",
+      "Luxury Vehicles",
+      "Minivans",
+      "Pickup Trucks",
+      "SUVs",
+      "Sedans",
+      "Sports Cars",
+      "Vans",
+      "Wagons"
+    ],
+    "fuel_types": [
+      "Diesel",
+      "Electric",
+      "Gas",
+      "Hybrid",
+      "Plug-In Hybrid"
+    ],
+    "drivetrains": [
+      "All Wheel Drive",
+      "Four Wheel Drive",
+      "Front Wheel Drive",
+      "Rear Wheel Drive"
+    ],
+    "transmissions": [
+      "Automatic",
+      "Manual"
+    ],
+    "exterior_colors": [
+      "Black",
+      "Blue",
+      "Brown",
+      "Gold",
+      "Gray",
+      "Green",
+      "Orange",
+      "Pink",
+      "Purple",
+      "Red",
+      "Silver",
+      "Tan",
+      "White",
+      "Yellow"
+    ],
+    "interior_colors": [
+      "Black",
+      "Blue",
+      "Brown",
+      "Gray",
+      "Green",
+      "Orange",
+      "Red",
+      "Tan",
+      "White",
+      "Yellow"
+    ],
+    "car_sizes": [
+      "Compact",
+      "Large",
+      "Midsize",
+      "Very Large"
+    ],
+    "doors": [
+      "2 Doors",
+      "3 Doors",
+      "4 Doors",
+      "5 Doors"
+    ],
+    "cylinders": [
+      "4 Cylinders",
+      "6 Cylinders",
+      "8 Cylinders",
+      "10 Cylinders",
+      "12 Cylinders"
+    ],
+    "features": [
+      "20-Inch Plus Wheels",
+      "ABS Brakes",
+      "Adjustable Suspension",
+      "Air Conditioning",
+      "Alloy Wheels",
+      "Android Auto",
+      "Apple CarPlay",
+      "Automated Cruise Control",
+      "Automated Parking",
+      "Auxiliary Audio Input",
+      "Barn Doors",
+      "Bed Cover",
+      "Bed Liner",
+      "Blind Spot Monitor",
+      "Bluetooth Technology",
+      "CD Audio",
+      "Cloth Seats",
+      "Cruise Control",
+      "Deck Lid",
+      "Dual Rear Wheels",
+      "Fifth Wheel Tow Hitch",
+      "Fold-Away Middle Row",
+      "Fold-Away Third Row",
+      "Front Seat Heaters",
+      "Full Leather Interior",
+      "Full Roof Rack",
+      "Gooseneck Tow Hitch",
+      "Hard Top",
+      "Head Up Display",
+      "Heated Steering Wheel",
+      "Lane Departure Warning",
+      "Leather & Suede Seats",
+      "Leather Seats",
+      "Leatherette & Cloth",
+      "Leatherette Seats",
+      "Navigation System",
+      "Overhead Airbags",
+      "Panoramic Sunroof",
+      "Parking Sensors",
+      "Power Folding Third Row",
+      "Power Locks",
+      "Power Mirrors",
+      "Power Windows",
+      "Premium Sound",
+      "Quad Seats",
+      "RamBox",
+      "Rear Air Conditioning",
+      "Rear Defroster",
+      "Rear Entertainment System",
+      "Rear Seat Heaters",
+      "Rear Spoiler",
+      "Rear Sunshade",
+      "Rear View Camera",
+      "Remote Start",
+      "Run Flat Tires",
+      "Running Boards",
+      "Satellite Radio Ready",
+      "Seat Massagers",
+      "Side Airbags",
+      "SiriusXM Trial Available",
+      "Smart Key",
+      "Soft Top",
+      "Suede Seats",
+      "Supercharged Engine",
+      "Sync System",
+      "Targa",
+      "Third Row Seat",
+      "Tow Hitch",
+      "Traction Control",
+      "Turbo Charged Engine",
+      "Vinyl Seats"
+    ]
+  },
+  "makes_count": 35,
+  "models_count": 578,
+  "filters": {
+    "acura": {
+      "integra": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mdx-sport": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Nx",
+          "Rx",
+          "S",
+          "Sport",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rdx": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Lx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tl": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Lx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "zdx": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "audi": {
+      "2-doors": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "a4": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [
+          "black",
+          "gray"
+        ],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "a5": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [
+          "gray"
+        ],
+        "drivetrains": [],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "a5-sportback": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "a6": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "a6-allroad": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "allroad": {
+        "trims": [
+          "Platinum",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e-tron": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e-tron-s": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e-tron-sportback": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "q5-sportback": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "q7": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "q8": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rs-e-tron-gt": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rs-q8": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Gx",
+          "Le",
+          "Premium",
+          "S",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rs3": {
+        "trims": [
+          "Es",
+          "Ls",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rs5": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s3": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [
+          "gray"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s5": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s7": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s8": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "Premium",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sq5": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sq5-sportback": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sq7": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "S",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sq8": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "S",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tts": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "bmw": {
+      "2-doors": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "2-series": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "3-series": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "5-series": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "530e": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "6-series": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "7-series": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hard-top": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "i4": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "i5": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "i7": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ix": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m2": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m235": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m240": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m3": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m340": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m4": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m440": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m5": {
+        "trims": [
+          "Es",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m550": {
+        "trims": [
+          "Es",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m760": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m8": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m850": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "buick": {
+      "4-doors": {
+        "trims": [
+          "Gx",
+          "Premium",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "enclave": {
+        "trims": [
+          "Premium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "encore": {
+        "trims": [
+          "Premium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "envision": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [
+          "black",
+          "gray"
+        ],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "envista": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [
+          "white"
+        ],
+        "drivetrains": [],
+        "features": [
+          "heated-steering-wheel",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Gx",
+          "Le",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "lacrosse": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "leather-seats",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Gx",
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Limited",
+          "Ls",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "regal": {
+        "trims": [
+          "Gs",
+          "Premium",
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [
+          "all-wheel-drive",
+          "front-wheel-drive"
+        ],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "regal-sportback": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Select",
+          "Sl",
+          "Sle",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Gx",
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Gx",
+          "Premium",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Gx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "verano": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S",
+          "Se",
+          "Sel",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "cadillac": {
+      "2-doors": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ats": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct4": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct4-v": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct5": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct5-v": {
+        "trims": [
+          "Es",
+          "Premium",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct6": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cts": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cts-v": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "elr": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "escalade": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "lyriq": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "srx": {
+        "trims": [
+          "Premium",
+          "Rx",
+          "S"
+        ],
+        "colors": [
+          "white"
+        ],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xt5": {
+        "trims": [
+          "Premium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xts": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "chevrolet": {
+      "2-doors": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "avalanche-1500": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "blazer": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [
+          "black",
+          "blue",
+          "gray"
+        ],
+        "drivetrains": [
+          "front-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "bolt": {
+        "trims": [
+          "Le"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "camaro": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "captiva-sport": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S",
+          "Se",
+          "Sel",
+          "Select",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "corvette": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cruze": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cruze-limited": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Ls",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "equinox": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "express-2500": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "S",
+          "Sl",
+          "Sv",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hard-top": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "impala": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [],
+        "features": [
+          "leather-seats",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Le",
+          "S",
+          "Sl",
+          "Slt",
+          "Xl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "silverado-1500-ld": {
+        "trims": [
+          "Le",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "silverado-2500": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sonic": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ss": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tahoe": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "chrysler": {
+      "full-roof-rack": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sl",
+          "Sle",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "pacifica": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sl",
+          "Sle",
+          "Touring"
+        ],
+        "colors": [
+          "white"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sl",
+          "Sle",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sl",
+          "Sle",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "town-and-country": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Limited",
+          "S",
+          "Se",
+          "Sl",
+          "Sle",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "voyager": {
+        "trims": [
+          "Le",
+          "Lx",
+          "S",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "dodge": {
+      "2-doors": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "avenger": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "charger": {
+        "trims": [
+          "S"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "dart": {
+        "trims": [
+          "Limited",
+          "Lx",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hornet": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "journey": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [
+          "gray"
+        ],
+        "drivetrains": [
+          "front-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Limited",
+          "Ls",
+          "S",
+          "Se",
+          "Sl",
+          "Sle",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "fiat": {
+      "124-spider": {
+        "trims": [
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "2-doors": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "500c": {
+        "trims": [
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "500l": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "500x": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "ford": {
+      "2-doors": {
+        "trims": [
+          "Premium",
+          "S",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "3-doors": {
+        "trims": [
+          "S",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Limited",
+          "S",
+          "Se",
+          "Sel",
+          "Sport",
+          "Titanium",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "Lariat",
+          "Platinum",
+          "Pro",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bronco": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bronco-sport": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c-max": {
+        "trims": [
+          "S",
+          "Se",
+          "Sel",
+          "Titanium"
+        ],
+        "colors": [
+          "white"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c-max-energi": {
+        "trims": [
+          "Le",
+          "S",
+          "Se",
+          "Sel",
+          "Sv",
+          "Titanium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "ecosport": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Ses",
+          "Sport",
+          "Titanium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "edge": {
+        "trims": [
+          "S",
+          "Se",
+          "Sel",
+          "Titanium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "expedition-el": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Limited",
+          "Ls",
+          "Platinum",
+          "S",
+          "Se",
+          "Sl",
+          "Sle",
+          "Slt",
+          "Sport",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "expedition-max": {
+        "trims": [
+          "Ex",
+          "Limited",
+          "Platinum",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "explorer": {
+        "trims": [
+          "Ex",
+          "Limited",
+          "Platinum",
+          "S",
+          "Sport",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "flex": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Le",
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Limited",
+          "Platinum",
+          "S",
+          "Se",
+          "Sport",
+          "Titanium",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "fusion": {
+        "trims": [
+          "S",
+          "Se",
+          "Titanium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "fusion-energi": {
+        "trims": [
+          "Platinum",
+          "S",
+          "Se",
+          "Titanium"
+        ],
+        "colors": [
+          "black",
+          "silver"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gooseneck-tow-hitch": {
+        "trims": [
+          "Denali",
+          "Lariat",
+          "S",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hard-top": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "maverick": {
+        "trims": [
+          "Lariat",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mustang": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mustang-mach-e": {
+        "trims": [
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "taurus": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [
+          "front-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Limited",
+          "S",
+          "Se",
+          "Sel",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "transit-250": {
+        "trims": [
+          "S",
+          "Sl",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "transit-connect": {
+        "trims": [
+          "S",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Limited",
+          "S",
+          "Se",
+          "Sel",
+          "Titanium",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Lariat",
+          "Le",
+          "Limited",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "genesis": {
+      "electrified-gv70": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Le",
+          "S",
+          "Signature",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "g70": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "g90": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gv60": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gv80": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "gmc": {
+      "4-doors": {
+        "trims": [
+          "Denali",
+          "Elevation",
+          "Le",
+          "Pro",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "At4",
+          "At4X",
+          "Denali",
+          "Denali Ultimate",
+          "Elevation",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "canyon": {
+        "trims": [
+          "At4",
+          "At4X",
+          "Denali",
+          "Elevation",
+          "Le"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt",
+          "Xl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gooseneck-tow-hitch": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Denali Ultimate",
+          "Lariat",
+          "Le",
+          "S",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "At4",
+          "At4X",
+          "Denali",
+          "S",
+          "Sl",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "savana-2500": {
+        "trims": [
+          "Denali",
+          "Elevation",
+          "Le",
+          "Pro",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "At4",
+          "At4X",
+          "Denali",
+          "Denali Ultimate",
+          "S",
+          "Xl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sierra-2500": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Denali Ultimate",
+          "Le",
+          "S",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [
+          "black",
+          "white"
+        ],
+        "drivetrains": [
+          "four-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "sierra-3500": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Denali Ultimate",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [
+          "four-wheel-drive",
+          "rear-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "At4",
+          "At4X",
+          "Denali",
+          "Denali Ultimate",
+          "S",
+          "Sl",
+          "Slt",
+          "Xl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Denali",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Denali",
+          "Denali Ultimate",
+          "Elevation",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt",
+          "Xl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yukon": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Denali Ultimate",
+          "Le",
+          "S",
+          "Sl",
+          "Sle",
+          "Slt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "honda": {
+      "4-doors": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "accord": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "accord-crosstour": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "civic": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "clarity": {
+        "trims": [
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cr-v": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "fit": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hr-v": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "insight": {
+        "trims": [
+          "Ex",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Ex L",
+          "Pro",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "passport": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "pilot": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Ex L",
+          "Ls",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "prologue": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Pro",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Ex L",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ridgeline": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Lx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "hyundai": {
+      "4-doors": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "accent": {
+        "trims": [
+          "Gs",
+          "Ls",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "elantra": {
+        "trims": [
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "equus": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Lx",
+          "S",
+          "Signature",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ioniq": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ioniq-5": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ioniq-5-n": {
+        "trims": [
+          "Adventure",
+          "Elite",
+          "Es",
+          "Le",
+          "Limited",
+          "Pro",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [
+          "white"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ioniq-6": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Le",
+          "Limited",
+          "Premium",
+          "Pro",
+          "S",
+          "Se",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "kona": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [
+          "green"
+        ],
+        "drivetrains": [],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "santa-cruz": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "santa-fe": {
+        "trims": [
+          "Limited",
+          "Ls",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "santa-fe-sport": {
+        "trims": [
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Night Edition",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sonata": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Limited",
+          "Ls",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tucson": {
+        "trims": [
+          "Limited",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "veloster": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Es",
+          "Limited",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "infiniti": {
+      "4-doors": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ex37": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "fx37": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "g37": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hard-top": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "jx35": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "m37": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "q40": {
+        "trims": [
+          "Es",
+          "Lx",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "q50": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [
+          "black",
+          "gray"
+        ],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "q60": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "qx30": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "qx55": {
+        "trims": [
+          "Es",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "qx60": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "qx70": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Platinum",
+          "Premium",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "jaguar": {
+      "2-doors": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e-pace": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "f-pace": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "i-pace": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xe": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "xk": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "jeep": {
+      "2-doors": {
+        "trims": [
+          "Le",
+          "Rubicon",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cherokee": {
+        "trims": [
+          "Limited",
+          "S"
+        ],
+        "colors": [
+          "black",
+          "blue"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sport",
+          "Summit",
+          "Trailhawk"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "grand-cherokee-wk": {
+        "trims": [
+          "Limited"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "heated-steering-wheel",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "grand-wagoneer-l": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "hard-top": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Rubicon",
+          "S",
+          "Sahara",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Limited",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "patriot": {
+        "trims": [
+          "Limited",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Overland",
+          "Reserve",
+          "S",
+          "Se",
+          "Summit"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "renegade": {
+        "trims": [
+          "Limited",
+          "S",
+          "Sport",
+          "Trailhawk"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Rubicon",
+          "S",
+          "Sahara",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Le",
+          "Limited",
+          "S",
+          "Sahara"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Le",
+          "Limited",
+          "S",
+          "Se",
+          "Sport",
+          "Trailhawk"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Overland",
+          "Reserve",
+          "S",
+          "Se",
+          "Summit"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "wagoneer": {
+        "trims": [
+          "Es",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "wagoneer-l": {
+        "trims": [
+          "Es",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "wrangler": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Rubicon",
+          "S",
+          "Sahara",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "wrangler-4xe": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Rubicon",
+          "S",
+          "Sahara",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Rubicon",
+          "S",
+          "Sahara",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "kia": {
+      "cadenza": {
+        "trims": [
+          "Limited",
+          "Lx",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "carnival": {
+        "trims": [
+          "Ex",
+          "Lx",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ev6": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ev9": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "forte5": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Lx",
+          "Pro",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "k4": {
+        "trims": [
+          "Ex",
+          "Lx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "k900": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Lx",
+          "Premium",
+          "S",
+          "Sl",
+          "Sle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Pro",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "niro": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Lx",
+          "Premium",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rio5": {
+        "trims": [
+          "Le",
+          "Ls",
+          "Lx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sedona": {
+        "trims": [
+          "Ex",
+          "Lx",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seltos": {
+        "trims": [
+          "Ex",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sportage": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Lx",
+          "Pro",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Ex",
+          "S",
+          "Se",
+          "Sel",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Lx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "telluride": {
+        "trims": [
+          "Ex",
+          "Lx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Lx",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Lx",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "land-rover": {
+      "2-doors": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "defender": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "discovery": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "heated-steering-wheel"
+        ],
+        "fuel_types": []
+      },
+      "discovery-sport": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "heated-steering-wheel"
+        ],
+        "fuel_types": []
+      },
+      "range-rover": {
+        "trims": [
+          "Es",
+          "Le",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "range-rover-evoque": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "range-rover-sport": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "range-rover-velar": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "lexus": {
+      "2-doors": {
+        "trims": [
+          "Ex",
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ct-200h": {
+        "trims": [
+          "Ex",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "es-250": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "es-350": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gs-350": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Gs",
+          "Le",
+          "Lx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gx-550": {
+        "trims": [
+          "Ex",
+          "Gx",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "is-200t": {
+        "trims": [
+          "Ex",
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ls-460": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Gs",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ls-500": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Ls",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "lx-570": {
+        "trims": [
+          "Denali",
+          "Denali Ultimate",
+          "Es",
+          "Ex",
+          "Gx",
+          "Le",
+          "Ls",
+          "Lx",
+          "Platinum",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "lx-600": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Gx",
+          "Le",
+          "Lx",
+          "Platinum",
+          "Premium",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "nx-200t": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Nx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "nx-250": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "nx-350": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rc-300": {
+        "trims": [
+          "Ex",
+          "Gs",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rc-f": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rx-350": {
+        "trims": [
+          "Ex",
+          "Le",
+          "Premium",
+          "Rx",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rx-350h": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rx-500h": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rz-300e": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rz-450e": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Ex",
+          "Gx",
+          "Le",
+          "Nx",
+          "Premium",
+          "Rx",
+          "S",
+          "Sport",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ux-300h": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Limited",
+          "Nx",
+          "Premium",
+          "S",
+          "Se",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "lincoln": {
+      "aviator": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [
+          "rear-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "remote-start"
+        ],
+        "fuel_types": []
+      },
+      "continental": {
+        "trims": [
+          "Es",
+          "Le",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "corsair": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "remote-start",
+          "tow-hitch"
+        ],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Le",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mkc": {
+        "trims": [
+          "Es",
+          "Le",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mkt": {
+        "trims": [
+          "Denali",
+          "Es",
+          "Le",
+          "Premium",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "nautilus": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "navigator": {
+        "trims": [
+          "Es",
+          "Le",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Limited",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Le",
+          "Reserve",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Reserve",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "mazda": {
+      "2-doors": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cx-30": {
+        "trims": [
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cx-50": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cx-70": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cx-9": {
+        "trims": [
+          "S",
+          "Signature",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cx-90": {
+        "trims": [
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mazda2": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S",
+          "Se",
+          "Sl",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mazda3": {
+        "trims": [
+          "Le",
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Select",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mazda5": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Ex L",
+          "Le",
+          "Lx",
+          "S",
+          "Se",
+          "Sl",
+          "Sle",
+          "Sport",
+          "Sv",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mazda6": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mx-30": {
+        "trims": [
+          "Le",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mx-5-miata": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "mercedes-benz": {
+      "2-doors": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "a220": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "a35-amg": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "amg-gt": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "b-class": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "b250e": {
+        "trims": [
+          "Es",
+          "Le",
+          "S",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c250": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c300": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c350e": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c63-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cla250": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cla35-amg": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cla45-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cle-300": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cle-53-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cls450": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cls53-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cls550": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e300": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e350": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e400": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e450": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e53-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "e63-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqb-300": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Pro",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqe-350": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqe-350+": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqe-500": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqe-amg": {
+        "trims": [
+          "Adventure",
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqs450+": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eqs580": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gl450": {
+        "trims": [
+          "Es",
+          "Ls",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gl550": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gla250": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glb250": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glb35-amg": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Premium",
+          "S",
+          "Tx"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc300-coupe": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc350e": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc43-amg": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc43-amg-coupe": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc63-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glc63-amg-coupe": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle350": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle43-amg": {
+        "trims": [
+          "Es",
+          "Le",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle43-amg-coupe": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle450": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle450-amg": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle63-amg": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gle63-amg-coupe": {
+        "trims": [
+          "Es",
+          "Le",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "glk350": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gls450": {
+        "trims": [
+          "Es",
+          "Ls",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gls550": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "mini": {
+      "2-doors": {
+        "trims": [
+          "S",
+          "Se",
+          "Signature"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cooper": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cooper-coupe": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cooper-hardtop": {
+        "trims": [
+          "S",
+          "Se",
+          "Signature"
+        ],
+        "colors": [
+          "blue",
+          "orange"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cooper-paceman": {
+        "trims": [
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "S",
+          "Se",
+          "Signature"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yellow": {
+        "trims": [
+          "Le",
+          "S",
+          "Signature"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "mitsubishi": {
+      "lancer": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "mirage-g4": {
+        "trims": [
+          "Es",
+          "Le",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "outlander": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Le",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "nissan": {
+      "2-doors": {
+        "trims": [
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "3-doors": {
+        "trims": [
+          "S",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "altima": {
+        "trims": [
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ariya": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Le",
+          "Limited",
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "frontier": {
+        "trims": [
+          "Pro",
+          "S",
+          "Sv"
+        ],
+        "colors": [
+          "black"
+        ],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Platinum",
+          "S",
+          "Sl",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gooseneck-tow-hitch": {
+        "trims": [
+          "At4",
+          "Denali",
+          "Le",
+          "S",
+          "Sl",
+          "Slt",
+          "Sv",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "juke": {
+        "trims": [
+          "S",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "kicks": {
+        "trims": [
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "leaf": {
+        "trims": [
+          "Le",
+          "S",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "murano-cross-cabriolet": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rogue-select": {
+        "trims": [
+          "Le",
+          "S",
+          "Se",
+          "Sel",
+          "Select"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rogue-sport": {
+        "trims": [
+          "S",
+          "Sl",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Platinum",
+          "Pro",
+          "S",
+          "Se",
+          "Sl",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Le",
+          "Platinum",
+          "S",
+          "Se",
+          "Sel",
+          "Select",
+          "Sl",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "S",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "titan": {
+        "trims": [
+          "Es",
+          "Platinum",
+          "Platinum Reserve",
+          "Pro",
+          "Reserve",
+          "S",
+          "Se",
+          "Sl",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "titan-xd": {
+        "trims": [
+          "Es",
+          "Le",
+          "Platinum",
+          "Platinum Reserve",
+          "Reserve",
+          "S",
+          "Se",
+          "Sl",
+          "Sv",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "ram": {
+      "1500-classic": {
+        "trims": [
+          "Es",
+          "Ex",
+          "S",
+          "Sl",
+          "Slt",
+          "Tradesman"
+        ],
+        "colors": [],
+        "drivetrains": [
+          "four-wheel-drive"
+        ],
+        "features": [],
+        "fuel_types": []
+      },
+      "2-doors": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl",
+          "Slt",
+          "Tradesman"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "4-doors": {
+        "trims": [
+          "Es",
+          "Longhorn",
+          "Rebel",
+          "S",
+          "Sl",
+          "Slt",
+          "Tradesman"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "Es",
+          "Longhorn",
+          "Rebel",
+          "S",
+          "Sl",
+          "Slt",
+          "Tradesman"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gooseneck-tow-hitch": {
+        "trims": [
+          "Es",
+          "Limited",
+          "S",
+          "Tradesman"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "tow-hitch"
+        ],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Limited",
+          "Longhorn"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "promaster-2500": {
+        "trims": [
+          "Pro",
+          "S",
+          "Sl",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "promaster-3500": {
+        "trims": [
+          "Pro",
+          "S",
+          "Sv",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "promaster-city": {
+        "trims": [
+          "Es",
+          "Pro",
+          "S",
+          "Sl",
+          "Slt",
+          "Sv",
+          "Tradesman",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Limited",
+          "Rebel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "rivian": {
+      "r1s": {
+        "trims": [
+          "Adventure",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "r1t": {
+        "trims": [
+          "Adventure",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Adventure",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "scion": {
+      "fr-s": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "ia": {
+        "trims": [
+          "Es",
+          "S",
+          "Se",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "im": {
+        "trims": [
+          "Lx",
+          "S",
+          "Se",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "iq": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Limited",
+          "Rx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tc": {
+        "trims": [
+          "Ex",
+          "Ex L",
+          "Limited",
+          "Rx",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xb": {
+        "trims": [
+          "Le",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xd": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "smart": {
+      "fortwo": {
+        "trims": [
+          "Le",
+          "Ls",
+          "Prime",
+          "S",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "subaru": {
+      "brz": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Premium",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "crosstrek": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "forester": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Premium",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "impreza": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "legacy": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Premium",
+          "S",
+          "Sport",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "Le",
+          "Limited",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "outback": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "solterra": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Le",
+          "Limited",
+          "Pro",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Limited",
+          "Premium",
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "tesla": {
+      "cybertruck": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "model-3": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "model-s": {
+        "trims": [
+          "Adventure",
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "model-x": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "model-y": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "S",
+          "Sl"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "toyota": {
+      "4runner": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "Pro",
+          "S",
+          "Trd Off Road",
+          "Trd Off Road Premium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bed-cover": {
+        "trims": [
+          "Limited",
+          "S",
+          "Sport",
+          "Trd Off Road"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "bz4x": {
+        "trims": [
+          "Elite",
+          "Es",
+          "Ex",
+          "Le",
+          "Limited",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "c-hr": {
+        "trims": [
+          "Le",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "camry": {
+        "trims": [
+          "Le",
+          "S",
+          "Se",
+          "Xl",
+          "Xle",
+          "Xse"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "corolla-hatchback": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "crown-signia": {
+        "trims": [
+          "Elite",
+          "Ex",
+          "Le",
+          "Limited",
+          "Nx",
+          "Premium",
+          "Pro",
+          "S",
+          "Sport",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "fj-cruiser": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Ls",
+          "Lx",
+          "S",
+          "Se",
+          "Sport",
+          "Sv"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gr86": {
+        "trims": [
+          "Premium"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "grand-highlander": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Platinum",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [
+          "all-wheel-drive"
+        ],
+        "features": [
+          "heated-steering-wheel",
+          "leather-seats"
+        ],
+        "fuel_types": []
+      },
+      "land-cruiser": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "prius-c": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "prius-v": {
+        "trims": [
+          "S",
+          "Touring"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rav4": {
+        "trims": [
+          "Adventure",
+          "Le",
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Xl",
+          "Xle",
+          "Xse"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "rear-entertainment-system": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Platinum",
+          "Premium",
+          "S",
+          "Se",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Limited",
+          "Platinum",
+          "Pro",
+          "S",
+          "Se",
+          "Xl",
+          "Xlt"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sequoia": {
+        "trims": [
+          "Limited",
+          "Platinum",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "supra": {
+        "trims": [
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Platinum",
+          "Premium",
+          "Prime",
+          "S",
+          "Se",
+          "Xl",
+          "Xle",
+          "Xse"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Platinum",
+          "Premium",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "tundra": {
+        "trims": [
+          "Limited",
+          "Platinum",
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "venza": {
+        "trims": [
+          "Le",
+          "Limited",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "yaris": {
+        "trims": [
+          "Le",
+          "S",
+          "Xl",
+          "Xle"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "volkswagen": {
+      "2-doors": {
+        "trims": [
+          "Le",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "arteon": {
+        "trims": [
+          "Es",
+          "Lx",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "atlas-cross-sport": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "beetle": {
+        "trims": [
+          "Le",
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "cc": {
+        "trims": [
+          "Premium",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "eos": {
+        "trims": [
+          "Le",
+          "S",
+          "Signature"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "full-roof-rack": {
+        "trims": [
+          "Premium",
+          "Pro",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "golf": {
+        "trims": [
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "golf-alltrack": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "gti": {
+        "trims": [
+          "S",
+          "Se"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "id-4": {
+        "trims": [
+          "Pro",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "memory-seat(s)": {
+        "trims": [
+          "Premium",
+          "Pro",
+          "S",
+          "Se",
+          "Sel",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "passat": {
+        "trims": [
+          "Limited",
+          "Premium",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "soft-top": {
+        "trims": [
+          "Le",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Le",
+          "Pro",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Pro",
+          "S",
+          "Se",
+          "Sel"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    },
+    "volvo": {
+      "full-roof-rack": {
+        "trims": [
+          "Es",
+          "Ex",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s60-recharge": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "Nx",
+          "Premium",
+          "S",
+          "Sport"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s80": {
+        "trims": [
+          "Platinum",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "s90": {
+        "trims": [
+          "Es",
+          "Premium",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "seat-massagers": {
+        "trims": [
+          "Ex",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "sunroof(s)": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "suvs": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "third-row-seat": {
+        "trims": [
+          "Es",
+          "Ex",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "turbo-charged-engine": {
+        "trims": [
+          "Es",
+          "Ex",
+          "Platinum",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "v60-cross-country": {
+        "trims": [
+          "Platinum",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xc40-recharge": {
+        "trims": [
+          "Es",
+          "Le",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xc60": {
+        "trims": [
+          "Platinum",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xc60-recharge": {
+        "trims": [
+          "Es",
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      },
+      "xc90": {
+        "trims": [
+          "S"
+        ],
+        "colors": [],
+        "drivetrains": [],
+        "features": [],
+        "fuel_types": []
+      }
+    }
+  }
+}
