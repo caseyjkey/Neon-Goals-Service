@@ -531,8 +531,7 @@ async def main():
             # Also write to temp file as backup
             with open(f"/tmp/scraper_output_{os.getpid()}.json", "w") as f:
                 f.write(output)
-            f.flush()
-            sys.stdout.flush()
+                f.flush()
     except Exception as e:
         print(json.dumps({"error": str(e)}))
         sys.exit(1)
