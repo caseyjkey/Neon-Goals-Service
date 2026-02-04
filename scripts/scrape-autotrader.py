@@ -6,6 +6,7 @@ Accepts structured query format (from parse_vehicle_query.py) and
 converts it to AutoTrader-specific parameters via the adapter function.
 """
 import json
+import os
 import sys
 import tempfile
 import logging

@@ -8,6 +8,7 @@ converts it to CarMax-specific parameters via the adapter function.
 """
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import logging

@@ -5,6 +5,7 @@ First tries GraphQL API with filters, falls back to Camoufox scraping
 """
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import logging

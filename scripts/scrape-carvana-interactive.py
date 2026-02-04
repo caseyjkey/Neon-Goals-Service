@@ -5,6 +5,7 @@ Opens browser, clicks filter UI elements, then extracts results
 """
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import logging

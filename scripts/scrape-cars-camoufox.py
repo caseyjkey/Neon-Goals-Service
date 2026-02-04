@@ -21,6 +21,7 @@ IMPORTANT: Trim is JUST the trim name (no drivetrain suffix!)
 """
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import logging

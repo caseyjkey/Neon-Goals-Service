@@ -5,6 +5,7 @@ Uses exact selectors found via chrome-devtools analysis
 """
 import asyncio
 import json
+import os
 import sys
 import tempfile
 import logging
