@@ -60,11 +60,9 @@ def adapt_structured_to_carmax(structured: dict) -> dict:
         params['makes'] = makes[:min_len]
         params['models'] = models[:min_len]
 
-    # NOTE: Trims are NOT included in CarMax URL because CarMax's URL-based
-    # trim filtering is very limited (e.g., "Denali Ultimate" is not a valid
-    # URL filter, only "denali" exists). We get all trims for the make/model
-    # and the trim info is included in the vehicle names returned.
-    # Skip trims for URL building to avoid 0 results from invalid filters.
+    # Trims (make/model specific)
+    if structured.get('trims'):
+        params['trims'] = structured['trims']
 
     # Colors (exterior or interior - CarMax treats both as colors)
     colors = []

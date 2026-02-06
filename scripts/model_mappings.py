@@ -105,6 +105,8 @@ SITES_WITH_BOTH_VARIANTS = {
     'autotrader',
     'truecar',
     'cargurus',
+    # Note: CarMax does NOT have separate sierra-3500-hd pages
+    # It only has sierra-3500, so HD models are normalized to non-HD
 }
 
 
