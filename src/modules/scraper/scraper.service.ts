@@ -1085,6 +1085,14 @@ export class ScraperService {
       return;
     }
 
+    // DEBUG: Log what we received
+    const retailerCounts: Record<string, number> = {};
+    data.forEach((item: any) => {
+      const retailer = item.retailer || item.source || 'Unknown';
+      retailerCounts[retailer] = (retailerCounts[retailer] || 0) + 1;
+    });
+    this.logger.log(`Job ${jobId} received ${data.length} listings by retailer: ${JSON.stringify(retailerCounts)}`);
+
     // Get denied and shortlisted candidates to filter out
     const deniedCandidates = (job.goal.itemData?.deniedCandidates as any[]) || [];
     const shortlistedCandidates = (job.goal.itemData?.shortlistedCandidates as any[]) || [];
@@ -1094,6 +1102,18 @@ export class ScraperService {
     const shortlistedUrls = new Set(shortlistedCandidates.map((c) => c.url));
     const existingUrls = new Set(existingCandidates.map((c) => c.url));
     const excludedUrls = new Set([...deniedUrls, ...shortlistedUrls, ...existingUrls]);
+
+    this.logger.log(`Job ${jobId} filtering: ${deniedUrls.size} denied, ${shortlistedUrls.size} shortlisted, ${existingUrls.size} existing URLs`);
+
+    // DEBUG: Check AutoTrader specifically before filtering
+    const autoTraderBeforeFilter = data.filter((item: any) =>
+      item.retailer === 'AutoTrader' || item.source === 'autotrader'
+    );
+    this.logger.log(`AutoTrader BEFORE filter: ${autoTraderBeforeFilter.length} listings`);
+    autoTraderBeforeFilter.forEach((listing: any) => {
+      const urlPreview = listing.url ? listing.url.substring(0, 80) : 'NO URL';
+      this.logger.log(`  - ${listing.name} | URL: ${urlPreview}...`);
+    });
 
     // Filter and convert data
     const candidates = data
@@ -1112,6 +1132,19 @@ export class ScraperService {
         estimatedDelivery: item.location || 'Contact seller',
         features: item.mileage ? [`${item.mileage} mi`] : [],
       }));
+
+    // DEBUG: Check AutoTrader specifically after filtering
+    const autoTraderAfterFilter = candidates.filter((item: any) =>
+      item.retailer === 'AutoTrader'
+    );
+    this.logger.log(`AutoTrader AFTER filter: ${autoTraderAfterFilter.length} listings (filtered out ${autoTraderBeforeFilter.length - autoTraderAfterFilter.length})`);
+
+    // DEBUG: Log final retailer breakdown
+    const finalRetailerCounts: Record<string, number> = {};
+    candidates.forEach((item: any) => {
+      finalRetailerCounts[item.retailer] = (finalRetailerCounts[item.retailer] || 0) + 1;
+    });
+    this.logger.log(`Job ${jobId} storing ${candidates.length} candidates by retailer: ${JSON.stringify(finalRetailerCounts)}`);
 
     // Update goal with candidates
     const statusBadge = candidates.length > 0 ? 'in_stock' : 'not_found';

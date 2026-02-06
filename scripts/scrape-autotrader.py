@@ -441,16 +441,44 @@ def scrape_with_camoufox(query: str, max_results: int, os_choice: str = None):
                         location = location_elem.inner_text().strip()
                         break
 
-                # Link - check if card is wrapped in a link or find link via JavaScript
+                # Link - AutoTrader listings always have a link, find it robustly
                 link = ""
                 try:
-                    # Try to find the link by evaluating JavaScript
-                    link_href = card.evaluate('(el) => { const link = el.closest("a") || el.querySelector("a"); return link ? link.href : ""; }')
+                    # Method 1: Check if card itself is wrapped in anchor
+                    link_href = card.evaluate('(el) => { const link = el.closest("a"); return link ? link.href : null; }')
                     if link_href:
                         link = link_href
-                except:
-                    # Fallback: construct from title if we can extract VIN or ID
-                    pass
+
+                    # Method 2: Look for anchor inside card with href containing /cars-for-sale/vehicle/ or /vehicledetails/
+                    if not link:
+                        links_in_card = card.query_selector_all('a[href*="/cars-for-sale/"], a[href*="vehicledetails"]')
+                        if links_in_card:
+                            link = links_in_card[0].get_attribute('href') or ""
+
+                    # Method 3: Any anchor with href inside the card
+                    if not link:
+                        all_links = card.query_selector_all('a[href]')
+                        for a in all_links:
+                            href = a.get_attribute('href')
+                            if href and ('autotrader.com' in href or '/cars-for-sale/' in href or 'vehicledetails' in href):
+                                link = href
+                                break
+
+                    # Method 4: Last resort - get any href from card
+                    if not link:
+                        any_link = card.query_selector('a[href]')
+                        if any_link:
+                            link = any_link.get_attribute('href') or ""
+
+                except Exception as e:
+                    logging.error(f"[AutoTrader] Error extracting link for listing {idx}: {e}")
+
+                # If still no link, log details for debugging
+                if not link:
+                    card_html = card.evaluate('(el) => el.outerHTML.substring(0, 500)')
+                    logging.error(f"[AutoTrader] No URL found for listing {idx}. Card HTML preview: {card_html}")
+                    # Still add the listing - user wants all listings
+                    link = f"https://www.autotrader.com/error-no-url-{idx}"
 
                 vehicle = {
                     "title": title,

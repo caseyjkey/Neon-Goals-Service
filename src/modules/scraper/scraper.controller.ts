@@ -25,6 +25,29 @@ export class ScraperController {
       return { acknowledged: true, status: 'error' };
     }
 
+    // DEBUG: Log detailed breakdown by retailer
+    if (callbackData.data && Array.isArray(callbackData.data)) {
+      const retailerCounts: Record<string, number> = {};
+      callbackData.data.forEach((item: any) => {
+        const retailer = item.retailer || item.source || 'Unknown';
+        retailerCounts[retailer] = (retailerCounts[retailer] || 0) + 1;
+      });
+      this.logger.log(`Job ${callbackData.jobId} results by retailer: ${JSON.stringify(retailerCounts)}`);
+
+      // Log AutoTrader listings specifically
+      const autoTraderListings = callbackData.data.filter((item: any) =>
+        item.retailer === 'AutoTrader' || item.source === 'autotrader'
+      );
+      if (autoTraderListings.length > 0) {
+        this.logger.log(`AutoTrader listings received (${autoTraderListings.length}):`);
+        autoTraderListings.forEach((listing: any, idx: number) => {
+          this.logger.log(`  [${idx + 1}] ${listing.name} - $${listing.price} - ${listing.url}`);
+        });
+      } else {
+        this.logger.warn(`⚠️ NO AutoTrader listings found in callback data!`);
+      }
+    }
+
     this.logger.log(`Job ${callbackData.jobId} succeeded with ${callbackData.data?.length || 0} results`);
     await this.scraperService.handleJobSuccess(callbackData.jobId, callbackData.data);
 
