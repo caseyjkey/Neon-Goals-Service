@@ -508,15 +508,15 @@ def scrape_autotrader(query: str, max_results: int = 10, cdp_url: str = "http://
 
         result = scrape_with_camoufox(query, max_results, os_choice=os_choice)
 
-        # Success - return results
+        # Success (scraping completed) - return results
+        # result is not None means scraping succeeded (even if empty list)
+        # result is None means bot detected
         if result is not None:
-            # If we got results or it's the last attempt with no bot detection
-            if result or attempt == _max_vpn_rotations:
-                if vpn:
-                    logging.error(f"[AutoTrader] Got {len(result)} results")
-                return result
+            if vpn:
+                logging.error(f"[AutoTrader] Got {len(result)} results")
+            return result
 
-        # Bot detected - rotate VPN and retry
+        # Bot detected (result is None) - rotate VPN and retry
         if result is None and vpn:
             logging.error(f"[AutoTrader] Bot detected, rotating VPN...")
             vpn.rotate_vpn()

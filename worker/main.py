@@ -48,6 +48,10 @@ SCRAPER_SCRIPTS: Dict[str, str] = {
     # KBB deprecated - uses same Cox Automotive API as AutoTrader
 }
 
+# Scrapers that handle their own bot detection and VPN rotation
+# Worker should not do additional VPN retry for these
+SCRAPER_WITH_INTERNAL_VPN_RETRY = {"autotrader", "carvana"}
+
 
 def run_scraper_and_callback(
     scraper_name: str,
@@ -515,9 +519,10 @@ def run_single_scraper(
                 logger.error(f"Scraper {scraper_name} failed: {error_msg}")
 
                 # Check for bot detection indicators in stderr
+                # Skip worker-level VPN retry for scrapers that handle their own retry
                 bot_indicators = ["403", "forbidden", "access denied", "bot detected", "blocked"]
                 if any(indicator.lower() in error_msg.lower() for indicator in bot_indicators):
-                    if attempt < max_vpn_retries and vpn:
+                    if attempt < max_vpn_retries and vpn and scraper_name not in SCRAPER_WITH_INTERNAL_VPN_RETRY:
                         logger.warning(f"{scraper_name}: Bot detection detected, will retry with VPN...")
                         continue  # Retry with VPN
                     return []
@@ -549,9 +554,10 @@ def run_single_scraper(
             data = eval(listings)  # Safe here as we control the scraper output
 
             # Check for bot detection in scraper output
+            # Skip worker-level VPN retry for scrapers that handle their own retry
             if data is None:
                 logger.warning(f"{scraper_name}: Returned None (bot detection)")
-                if attempt < max_vpn_retries and vpn:
+                if attempt < max_vpn_retries and vpn and scraper_name not in SCRAPER_WITH_INTERNAL_VPN_RETRY:
                     continue  # Retry with VPN
                 return []
 
@@ -561,9 +567,10 @@ def run_single_scraper(
                     logger.error(f"{scraper_name} returned error: {error}")
 
                     # Check for bot detection in error message
+                    # Skip worker-level VPN retry for scrapers that handle their own retry
                     bot_indicators = ["403", "forbidden", "bot", "blocked", "access denied", "restricted"]
                     if any(indicator.lower() in error.lower() for indicator in bot_indicators):
-                        if attempt < max_vpn_retries and vpn:
+                        if attempt < max_vpn_retries and vpn and scraper_name not in SCRAPER_WITH_INTERNAL_VPN_RETRY:
                             logger.warning(f"{scraper_name}: Bot detection in error, will retry with VPN...")
                             continue  # Retry with VPN
                     return []
