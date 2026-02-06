@@ -28,9 +28,9 @@ export class GoalsController {
     @Query('type') type?: string,
     @Query('status') status?: string,
   ) {
-    const filters: { type?: 'item' | 'finance' | 'action'; status?: 'active' | 'completed' | 'archived' } = {};
-    if (type && ['item', 'finance', 'action'].includes(type)) {
-      filters.type = type as 'item' | 'finance' | 'action';
+    const filters: { type?: 'item' | 'finance' | 'action' | 'group'; status?: 'active' | 'completed' | 'archived' } = {};
+    if (type && ['item', 'finance', 'action', 'group'].includes(type)) {
+      filters.type = type as 'item' | 'finance' | 'action' | 'group';
     }
     if (status && ['active', 'completed', 'archived'].includes(status)) {
       filters.status = status as 'active' | 'completed' | 'archived';
@@ -67,6 +67,14 @@ export class GoalsController {
     return this.goalsService.createActionGoal(userId, data);
   }
 
+  @Post('group')
+  async createGroupGoal(
+    @CurrentUser('userId') userId: string,
+    @Body() data: any,
+  ) {
+    return this.goalsService.createGroupGoal(userId, data);
+  }
+
   @Patch(':id')
   async update(
     @Param('id') id: string,
@@ -101,6 +109,15 @@ export class GoalsController {
     @Body() data: any,
   ) {
     return this.goalsService.updateActionGoal(id, userId, data);
+  }
+
+  @Patch(':id/group')
+  async updateGroupGoal(
+    @Param('id') id: string,
+    @CurrentUser('userId') userId: string,
+    @Body() data: any,
+  ) {
+    return this.goalsService.updateGroupGoal(id, userId, data);
   }
 
   @Delete(':id')

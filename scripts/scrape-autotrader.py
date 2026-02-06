@@ -514,9 +514,11 @@ def scrape_autotrader(query: str, max_results: int = 10, cdp_url: str = "http://
     """
     global _max_vpn_rotations
 
+    # If Camoufox is not available, fall back to CDP
     if not CAMOUFOX_AVAILABLE:
-        logging.error(f"[AutoTrader] Camoufox not available!")
-        return []
+        logging.error(f"[AutoTrader] Camoufox not available, falling back to CDP...")
+        # CDP doesn't support VPN rotation, just try once
+        return scrape_with_playwright_cdp(query, max_results, cdp_url)
 
     # Initialize VPN if enabled
     vpn = get_vpn_manager() if enable_vpn else None

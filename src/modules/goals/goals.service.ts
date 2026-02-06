@@ -26,6 +26,19 @@ export class GoalsService {
             tasks: true,
           },
         },
+        groupData: true,
+        subgoals: {
+          include: {
+            itemData: true,
+            financeData: true,
+            actionData: {
+              include: {
+                tasks: true,
+              },
+            },
+            groupData: true,
+          },
+        },
       },
       orderBy: {
         updatedAt: 'desc',
@@ -44,6 +57,19 @@ export class GoalsService {
             tasks: {
               orderBy: { createdAt: 'asc' },
             },
+          },
+        },
+        groupData: true,
+        subgoals: {
+          include: {
+            itemData: true,
+            financeData: true,
+            actionData: {
+              include: {
+                tasks: true,
+              },
+            },
+            groupData: true,
           },
         },
       },
@@ -148,6 +174,45 @@ export class GoalsService {
     return this.findOne(goal.id, userId);
   }
 
+  async createGroupGoal(userId: string, data: any) {
+    const goal = await this.prisma.goal.create({
+      data: {
+        type: GoalType.group,
+        title: data.title,
+        description: data.description,
+        status: data.status || GoalStatus.active,
+        userId,
+        parentGoalId: data.parentGoalId,
+        groupData: {
+          create: {
+            icon: data.icon,
+            color: data.color,
+            layout: data.layout || 'grid',
+            progressType: data.progressType || 'average',
+            progress: data.progress || 0,
+          },
+        },
+      },
+      include: {
+        groupData: true,
+        subgoals: {
+          include: {
+            itemData: true,
+            financeData: true,
+            actionData: {
+              include: {
+                tasks: true,
+              },
+            },
+            groupData: true,
+          },
+        },
+      },
+    });
+
+    return this.findOne(goal.id, userId);
+  }
+
   async update(id: string, userId: string, data: any) {
     // Check if goal exists and belongs to user
     await this.findOne(id, userId);
@@ -213,6 +278,27 @@ export class GoalsService {
         data: {
           completionPercentage: data.completionPercentage,
         },
+      });
+    }
+
+    return this.findOne(id, userId);
+  }
+
+  async updateGroupGoal(id: string, userId: string, data: any) {
+    await this.findOne(id, userId);
+
+    const updateData: any = {};
+
+    if (data.icon !== undefined) updateData.icon = data.icon;
+    if (data.color !== undefined) updateData.color = data.color;
+    if (data.layout !== undefined) updateData.layout = data.layout;
+    if (data.progressType !== undefined) updateData.progressType = data.progressType;
+    if (data.progress !== undefined) updateData.progress = data.progress;
+
+    if (Object.keys(updateData).length > 0) {
+      await this.prisma.groupGoalData.update({
+        where: { goalId: id },
+        data: updateData,
       });
     }
 

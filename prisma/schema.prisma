@@ -76,6 +76,7 @@ model Goal {
   itemData    ItemGoalData?
   financeData FinanceGoalData?
   actionData  ActionGoalData?
+  groupData   GroupGoalData?
 
   // Scrape jobs for this goal
   scrapeJobs  ScrapeJob[]
@@ -182,6 +183,37 @@ model Task {
   @@index([actionGoalId, completed])
 }
 
+// Group Goal Data
+model GroupGoalData {
+  id              String          @id @default(cuid())
+  goalId          String          @unique
+  goal            Goal            @relation(fields: [goalId], references: [id], onDelete: Cascade)
+
+  // Group visualization
+  icon            String?         // Emoji or icon identifier
+  color           String?         // CSS gradient class or color value
+  layout          GroupLayout     @default(grid)
+
+  // Progress calculation
+  progressType    ProgressType    @default(average)
+  progress        Float           @default(0)  // Calculated progress (0-100)
+
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+}
+
+enum GroupLayout {
+  grid
+  list
+  kanban
+}
+
+enum ProgressType {
+  average  // Average progress of all children
+  sum      // Sum of numeric values (for finance groups)
+  manual   // Manually set progress
+}
+
 // Chat messages
 model Message {
   id        String   @id @default(cuid())
@@ -261,6 +293,7 @@ enum GoalType {
   item
   finance
   action
+  group
 }
 
 enum GoalStatus {
