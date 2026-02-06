@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-02-06T00:00:00",
+  "note": "TrueCar uses mmt[] parameter for make/model/trim in URL format.",
+  "global_filters": {
+    "body_styles": ["Convertible", "Coupe", "Hatchback", "Sedan", "SUV", "Truck", "Van", "Wagon"],
+    "fuel_types": ["Diesel", "Electric", "Gas", "Hybrid", "Plug-In Hybrid"],
+    "drivetrains": ["AWD", "4WD", "FWD", "RWD"]
+  }
+}

@@ -1,0 +1,10 @@
+{
+  "version": "1.0",
+  "last_updated": "2026-02-06T00:00:00",
+  "note": "Carvana uses interactive UI filters selected via checkbox.",
+  "global_filters": {
+    "body_types": ["Convertible", "Coupe", "Hatchback", "Sedan", "SUV", "Truck", "Van", "Wagon"],
+    "fuel_types": ["Diesel", "Electric", "Gas", "Hybrid"],
+    "drivetrains": ["AWD", "4WD", "FWD", "RWD"]
+  }
+}
