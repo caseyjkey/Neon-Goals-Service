@@ -386,11 +386,12 @@ def run_all_scrapers_and_callback(
 
     logger.info(f"Total listings from all scrapers: {len(all_results)}")
 
-    # Cleanup: Disable VPN after all scrapers finish
+    # Cleanup: Disable ALL VPNs after all scrapers finish
+    # This returns to residential IP for next job
     vpn = get_vpn_manager()
-    if vpn and vpn.vpn_enabled:
-        logger.info("Cleaning up VPN after all scrapers finished...")
-        vpn.disable_vpn()
+    if vpn:
+        logger.info("Cleaning up ALL VPNs after job finished, returning to residential IP...")
+        vpn.cleanup_all()
 
     # Send combined callback
     try:

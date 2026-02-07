@@ -229,6 +229,17 @@ class VPNManager:
             self._release_lock()
             return False
 
+    def cleanup_all(self):
+        """
+        Disable ALL VPNs and release lock.
+
+        Use this at the end of a job to return to residential IP.
+        Ensures clean state for the next job.
+        """
+        logging.error(f"[VPN] Cleaning up ALL VPNs and returning to residential IP...")
+        self._disable_all_wireguard_interfaces()
+        self._release_lock()
+
     def get_current_ip(self):
         """Get the current public IP address."""
         try:
