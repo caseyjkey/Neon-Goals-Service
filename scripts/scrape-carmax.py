@@ -394,6 +394,12 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
                         if url and not url.startswith('http'):
                             url = f"https://www.carmax.com{url}"
 
+                    # Final fallback: generate a unique URL based on vehicle name to avoid filtering
+                    if not url:
+                        # Create a unique slug from vehicle name and price to make URL unique
+                        name_slug = name.lower().replace(' ', '-').replace('/', '-')[:50]
+                        url = f"https://www.carmax.com/cars/all?search={name_slug}-{price}"
+
                 # Get the full vehicle name from the tile text
                 # The link element has the full name with trim (e.g., "2024 GMC Sierra 3500 Denali Ultimate")
                 # But inner_text() might return split text, so we need to clean it up

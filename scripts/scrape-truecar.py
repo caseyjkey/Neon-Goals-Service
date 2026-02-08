@@ -429,18 +429,15 @@ async def scrape_truecar_camoufox(search_filters: Dict[str, Any], max_results: i
 
 async def scrape_truecar(search_filters: Optional[Dict[str, Any]] = None, max_results: int = 10) -> list:
     """
-    Main entry point - tries GraphQL first, falls back to Camoufox
+    Main entry point - uses Camoufox scraping.
+
+    Note: GraphQL path is disabled because it doesn't provide individual vehicle URLs,
+    causing all listings to share the same URL and be filtered as duplicates.
     """
     if not search_filters:
         return []
 
-    # Try GraphQL first (faster)
-    if search_filters.get('make') and search_filters.get('model'):
-        results = await scrape_truecar_graphql(search_filters, max_results)
-        if results:
-            return results
-
-    # Fall back to Camoufox
+    # Use Camoufox directly (GraphQL doesn't provide individual URLs)
     return await scrape_truecar_camoufox(search_filters, max_results)
 
 
