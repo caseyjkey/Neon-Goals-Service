@@ -110,14 +110,20 @@ Each retailer's scraper expects a different input format. Generate the exact for
 
 5. **truecar** - Generate a dict with these exact keys:
    {{make, model, trims, startYear, endYear, budget, bodyStyle, drivetrain, fuelType}}
-   - make, model are strings
+   - make, model are strings - USE FULL MODEL NAME (e.g., "Sierra 3500HD" not "Sierra 3500")
    - trims is an array
    - budget = maxPrice
+   - CRITICAL: For truck models, include the full model name with suffix (3500HD, 2500HD, 1500)
 
-**IMPORTANT:**
-- Use the EXACT filter values from each retailer's filters JSON above
+**CRITICAL - EXACT VALUE MATCHING:**
+- Use ONLY the EXACT filter values from each retailer's filters JSON above
 - For makes/models/trims, use the "label" field (what users see in UI), NOT the "value" field
-- If a retailer doesn't support a filter, omit it
+- **Check EACH RETAILER'S filter JSON INDIVIDUALLY:**
+  - If the retailer has "Denali Ultimate" available → use "Denali Ultimate"
+  - If the retailer only has "Denali" available → use "Denali"
+  - Different retailers have different trim options - check each one!
+- NEVER make up values that don't exist in the retailer's filter JSON
+- **NOTE**: Carvana trims are loaded dynamically from the page - the scraper will fuzzy-match trim names
 - For year ranges:
   - AutoTrader: startYear + endYear (both required)
   - CarMax: yearMin + yearMax
@@ -135,7 +141,7 @@ Return ONLY JSON:
     "cargurus": {{"make": "GMC", "model": "Sierra 3500", ...}},
     "carmax": {{"makes": ["GMC"], "models": ["Sierra 3500"], ...}},
     "carvana": {{"make": "GMC", "model": "Sierra 3500", ...}},
-    "truecar": {{"make": "GMC", "model": "Sierra 3500", ...}}
+    "truecar": {{"make": "GMC", "model": "Sierra 3500HD", ...}}  // Note: Full model name with HD suffix
   }}
 }}
 """

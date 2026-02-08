@@ -92,7 +92,12 @@ def adapt_structured_to_cargurus(structured: dict) -> dict:
         if url_params.get('model'):
             params['model'] = url_params['model']
         if url_params.get('trim'):
-            params['trim'] = url_params['trim']
+            # Trim may be a list from LLM, extract first element
+            trim_val = url_params['trim']
+            if isinstance(trim_val, list):
+                params['trim'] = trim_val[0] if trim_val else ''
+            else:
+                params['trim'] = trim_val
         if url_params.get('drivetrain'):
             params['drivetrain'] = url_params['drivetrain']
         if url_params.get('fuelType'):
@@ -425,7 +430,12 @@ async def scrape_cars(search_filters: dict, max_results: int = 10):
     model = search_filters.get('model', '')
     zip_code = search_filters.get('zip', '94002')
     distance = search_filters.get('distance', 200)
-    trim = search_filters.get('trim', '')
+    # Trim may be a list from LLM, extract first element
+    trim_val = search_filters.get('trim', '')
+    if isinstance(trim_val, list):
+        trim = trim_val[0] if trim_val else ''
+    else:
+        trim = trim_val
 
     try:
         # Launch Camoufox in headed mode with full xvfb resolution

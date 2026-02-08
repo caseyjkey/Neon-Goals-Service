@@ -184,22 +184,26 @@ def build_carmax_url(
     """
     Build a CarMax URL with multiple makes/models and global filters.
 
-    CarMax URL format (filters can be chained in any order):
-    /cars/{make}/{model}/{body_type}/{fuel_type}/{feature}/{trim}/{color}?price={min}-{max}&showreservedcars={true|false}
+    CarMax URL format (CRITICAL: trim comes BEFORE model!):
+    /cars/{make}/{trim}/{model}/{body_type}/{fuel_type}/{feature}/{color}?price={min}-{max}&showreservedcars={true|false}
 
     Examples:
     - Single make/model: /cars/gmc/sierra-3500?showreservedcars=false
+    - With trim: /cars/gmc/denali-ultimate/sierra-3500?showreservedcars=false
     - Multiple makes: /cars/gmc/sierra-3500/ford/f-150?showreservedcars=false
     - With body type: /cars/suv?showreservedcars=false
-    - With features: /cars/gmc/sierra-3500/seat-massagers/sunroof?showreservedcars=false
-    - Complex: /cars/gmc/sierra-3500/denali/black/four-wheel-drive?price=20000-40000&showreservedcars=false
+    - With features: /cars/gmc/denali/sierra-3500/seat-massagers/sunroof?showreservedcars=false
+    - Complex: /cars/gmc/denali-ultimate/sierra-3500/black/four-wheel-drive?price=20000-40000&showreservedcars=false
     """
     parts = ['cars']
 
-    # Add make/model pairs if provided (CarMax supports multiple!)
+    # Add make/model/trim if provided (CarMax format: /cars/{make}/{trim}/{model})
     if makes and models:
         for make, model in zip(makes, models):
             parts.append(slugify(make))
+            # Add trim BEFORE model if available
+            if trims and len(trims) > 0:
+                parts.append(slugify(trims[0]))
             parts.append(slugify(model))
 
     # Add global filters (CarMax allows chaining these)
@@ -221,10 +225,7 @@ def build_carmax_url(
         for feature in features:
             parts.append(slugify(feature))
 
-    # Add trims (make/model specific)
-    if trims:
-        for trim in trims:
-            parts.append(slugify(trim))
+    # Note: Trims are now added BEFORE model in the make/model section above
 
     # Add colors (can be exterior or interior)
     if colors:

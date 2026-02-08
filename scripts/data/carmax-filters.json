@@ -77,6 +77,26 @@
       "note": "Make is added to URL path. Models are available after selecting a make."
     },
     {
+      "name": "Trim",
+      "type": "checkbox",
+      "selector": "button[aria-label='Back to all filters'] + menu input[type='checkbox']",
+      "url_format": "/cars/{make}/{trim}/{model}",
+      "note": "Trim comes BEFORE model in CarMax URL path. Trims are model-specific.",
+      "example_trims": {
+        "GMC Sierra": ["SLE", "SLT", "AT4", "Denali", "Denali Ultimate", "Pro"],
+        "Ford F-150": ["XL", "XLT", "Lariat", "King Ranch", "Platinum", "Limited"],
+        "Chevrolet Silverado": ["WT", "Custom", "LT", "LTZ", "High Country", "Trail Boss"]
+      },
+      "gmc_sierra_3500_trims": [
+        { "label": "AT4", "value": "at4", "note": "Off-road focused trim" },
+        { "label": "Denali", "value": "denali", "note": "Premium luxury trim" },
+        { "label": "Denali Ultimate", "value": "denali-ultimate", "note": "Top-tier luxury trim, available on newer models" },
+        { "label": "Pro", "value": "pro", "note": "Work-focused trim" },
+        { "label": "SLE", "value": "sle", "note": "Base luxury trim" },
+        { "label": "SLT", "value": "slt", "note": "Mid-level luxury trim" }
+      ]
+    },
+    {
       "name": "Body Type",
       "type": "checkbox-path",
       "url_format": "/cars/{make}/{bodyType}",
