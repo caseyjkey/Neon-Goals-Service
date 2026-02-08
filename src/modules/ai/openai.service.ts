@@ -796,6 +796,11 @@ CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","bud
 - The title is displayed on goal cards - make it succinct!
 - IMPORTANT: If the user says "I want to buy a X", the title should be just "X", NOT "Buy a X"
 
+**⛔ STOP! Before creating any CREATE_GOAL command, CHECK THE TITLE:**
+- Does the title start with "Buy", "Purchase", "Get", "Find", "I want", etc.? → **REMOVE IT**
+- Title should be ONLY the item name: "GMC Sierra" NOT "Buy a GMC Sierra"
+- This is the most common mistake - double-check your title before outputting!
+
 **Example CREATE_GOAL:**
 \`\`\`
 CREATE_GOAL: {"type":"item","title":"GMC Sierra 3500HD Denali Ultimate","description":"2025 GMC Sierra Denali Ultimate 3500HD black or white color 4WD crew cab dually","budget":85000,"category":"vehicle","searchTerm":"2025 GMC Sierra Denali Ultimate 3500HD black or white color 4WD crew cab dually under 85000","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
