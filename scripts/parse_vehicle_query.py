@@ -103,10 +103,15 @@ Each retailer's scraper expects a different input format. Generate the exact for
    - Other values are strings
 
 4. **carvana** - Generate a dict with these exact keys:
-   {{make, model, series, trims, year}}
-   - make, model, series are strings
-   - trims is an array of trim names
-   - year is an integer
+   {{make, model, trims, year, drivetrain, exteriorColor, interiorColor, transmission, fuelType, features}}
+   - make, model are strings - use EXACT visible label with SPACES (e.g., "Sierra 3500", NOT "Sierra-3500" or "Sierra 3500HD")
+   - trims is an array of trim names - scraper will fuzzy match
+   - year is an integer (single year, not range)
+   - drivetrain, exteriorColor, interiorColor, transmission, fuelType are optional strings
+   - features is an optional array of feature names
+   - IMPORTANT: NO "series" parameter - the 1500/2500/3500 is part of the model name
+   - IMPORTANT: Model names use SPACES not hyphens - "Sierra 3500" NOT "sierra-3500"
+   - IMPORTANT: The "HD" suffix appears in vehicle titles but is NOT in the filter model name
 
 5. **truecar** - Generate a dict with these exact keys:
    {{make, model, trims, startYear, endYear, budget, bodyStyle, drivetrain, fuelType}}
@@ -140,7 +145,7 @@ Return ONLY JSON:
     "autotrader": "https://www.autotrader.com/...",
     "cargurus": {{"make": "GMC", "model": "Sierra 3500", ...}},
     "carmax": {{"makes": ["GMC"], "models": ["Sierra 3500"], ...}},
-    "carvana": {{"make": "GMC", "model": "Sierra 3500", ...}},
+    "carvana": {{"make": "GMC", "model": "Sierra 3500", ...}},  // Note: SPACES in model, NO HD suffix
     "truecar": {{"make": "GMC", "model": "Sierra 3500HD", ...}}  // Note: Full model name with HD suffix
   }}
 }}
@@ -309,15 +314,13 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     if year_max:
         retailers['carmax']['yearMax'] = str(year_max)
 
-    # Carvana - dict format
+    # Carvana - dict format (NO series parameter)
     retailers['carvana'] = {}
     if makes:
         retailers['carvana']['make'] = makes[0]
     if models:
+        # Use model as-is (contains the series designation like "Sierra 3500")
         retailers['carvana']['model'] = models[0]
-        # Extract series (HD) from model
-        if '3500' in models[0]:
-            retailers['carvana']['series'] = 'HD'
     if year_min:
         retailers['carvana']['year'] = year_min
 

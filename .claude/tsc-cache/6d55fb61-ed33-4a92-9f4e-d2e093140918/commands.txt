@@ -1,1 +1,0 @@
-prisma:build:cd /home/trill/Development/neon-goals-service/prisma && npx prisma generate

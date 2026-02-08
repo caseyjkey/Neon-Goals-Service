@@ -49,9 +49,10 @@ def adapt_structured_to_carvana_interactive(structured: dict) -> dict:
     Each scraper has its own adapter to convert this to scraper-specific params.
 
     Carvana interactive specifics:
-    - Takes individual parameters: make, model, series, trims, year
+    - Takes individual parameters: make, model, trims, year
     - Supports multiple trims as a list
     - Uses UI interaction to select filters
+    - Model names use SPACES (e.g., "Sierra 3500", NOT "Sierra-3500" or "Sierra 3500HD")
 
     Args:
         structured: The structured query dict with keys like makes, models, trims, etc.
@@ -90,7 +91,6 @@ def adapt_structured_to_carvana_interactive(structured: dict) -> dict:
 async def scrape_carvana_interactive(
     make: Optional[str] = None,
     model: Optional[str] = None,
-    series: Optional[str] = None,
     trims: Optional[List[str]] = None,
     year: Optional[int] = None,
     max_results: int = 10
@@ -100,11 +100,13 @@ async def scrape_carvana_interactive(
 
     Args:
         make: Vehicle make (e.g., "GMC")
-        model: Vehicle model (e.g., "Sierra 3500")
-        series: Vehicle series (e.g., "HD")
+        model: Vehicle model (e.g., "Sierra 3500" - with SPACES, NO "HD" suffix)
         trims: List of trim names to filter (e.g., ["Denali", "AT4"])
         year: Model year
         max_results: Maximum number of results to return
+
+    NOTE: Model names use SPACES not hyphens (e.g., "Sierra 3500" NOT "Sierra-3500")
+    NOTE: The "HD" suffix appears in vehicle titles but is NOT part of the model filter
     """
     results = []
 
@@ -177,14 +179,8 @@ async def scrape_carvana_interactive(
 
         # Step 3: Click on model if provided
         if model:
-            # Combine model and series for search (e.g., "Sierra" + "3500HD" -> "Sierra 3500")
+            # Use model directly - it should already be in the correct format (e.g., "Sierra 3500")
             search_model = model
-            if series:
-                # Remove "HD" from series for search (Carvana uses "3500" not "3500HD")
-                series_clean = series.replace('HD', '').replace('hd', '')
-                search_model = f"{model} {series_clean}"
-                logging.error(f"[Carvana] Combined model + series: '{search_model}'")
-
             logging.error(f"[Carvana] Selecting model: {search_model}")
             try:
                 # Wait for Models section to appear after make is selected
@@ -515,7 +511,6 @@ async def main():
         result = await scrape_carvana_interactive(
             make=filters.get('make'),
             model=filters.get('model'),
-            series=filters.get('series'),
             trims=filters.get('trims'),
             year=filters.get('year'),
             max_results=max_results
