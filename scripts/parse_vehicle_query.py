@@ -76,7 +76,6 @@ Full filters definition:
 
 URL format: {data.get('url_format', {})}
 """)
-        )
 
     # Build the prompt with expected output formats for each scraper
     return f"""You are a vehicle search filter mapper. Convert natural language queries into retailer-specific filter formats.

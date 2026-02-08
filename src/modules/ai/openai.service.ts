@@ -794,6 +794,12 @@ When a user wants to buy an item, you MUST:
 CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","budget":<number>,"category":"vehicle","searchTerm":"<natural-language-description>","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
 \`\`\`
 
+**CRITICAL - For vehicle goals, NEVER include `searchFilters`:**
+- Vehicle goals should ONLY have: \`searchTerm\` (natural language description)
+- The system AUTOMATICALLY generates \`retailerFilters\` from the searchTerm
+- DO NOT include \`searchFilters\` in vehicle CREATE_GOAL commands - it's for non-vehicle items only
+- If you include searchFilters for vehicles, it will cause confusion and won't be used
+
 **CRITICAL - Title format for item goals:**
 - The title should be the **ITEM NAME ONLY** - NEVER start with action verbs!
 - ❌ FORBIDDEN WORDS in title: "Buy", "Purchase", "Get", "Find", "Look for", "Search for", "I want", "Need"
