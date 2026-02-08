@@ -306,8 +306,6 @@ async def scrape_carvana_interactive(
                             continue
 
                     logging.error(f"[Carvana] Found {len(available_trims)} available trim options")
-                    for t in available_trims[:10]:  # Log first 10 for debugging
-                        logging.error(f"[Carvana]   - '{t['text']}'")
 
                     # Track which trims we've clicked to avoid duplicates
                     clicked_trims = set()
@@ -345,16 +343,43 @@ async def scrape_carvana_interactive(
                             available_lower = available['text'].lower()
                             trim_lower = trim.lower()
 
-                            # Prefix match: "Denali" matches "Denali 6 1/2 ft"
-                            if available_lower.startswith(trim_lower + ' ') or available_lower.startswith(trim_lower + '-'):
+                            # Prefix match (forward): "Denali" matches "Denali 6 1/2 ft"
+                            # Prefix match (reverse): "Denali Ultimate" matches "Denali"
+                            if (available_lower.startswith(trim_lower + ' ') or available_lower.startswith(trim_lower + '-') or
+                                trim_lower.startswith(available_lower + ' ') or trim_lower.startswith(available_lower + '-')):
                                 try:
                                     await available['element'].click()  # Click the label
                                     clicked_trims.add(available['text'])
                                     await asyncio.sleep(1)
-                                    logging.error(f"[Carvana] Selected partial trim match: '{available['text']}' (from '{trim}')")
+                                    logging.error(f"[Carvana] Selected prefix trim match: '{available['text']}' (from '{trim}')")
                                     matched = True
                                 except Exception as e:
-                                    logging.error(f"[Carvana] Error clicking partial match: {e}")
+                                    logging.error(f"[Carvana] Error clicking prefix match: {e}")
+
+                        # Stage 3: No prefix match, try first-word match as final fallback
+                        # Only use this if no other matches were found
+                        if not matched:
+                            logging.error(f"[Carvana] No prefix match for '{trim}', trying first-word fallback...")
+                            trim_first_word = trim_lower.split()[0] if trim_lower.split() else ''
+                            if trim_first_word:
+                                for available in available_trims:
+                                    # Skip if already clicked
+                                    if available['text'] in clicked_trims:
+                                        continue
+
+                                    available_lower = available['text'].lower()
+                                    available_first_word = available_lower.split()[0] if available_lower.split() else ''
+
+                                    # First word match: "Denali Ultimate" matches "Denali 6 1/2 ft"
+                                    if available_first_word == trim_first_word:
+                                        try:
+                                            await available['element'].click()  # Click the label
+                                            clicked_trims.add(available['text'])
+                                            await asyncio.sleep(1)
+                                            logging.error(f"[Carvana] Selected first-word fallback match: '{available['text']}' (from '{trim}')")
+                                            matched = True
+                                        except Exception as e:
+                                            logging.error(f"[Carvana] Error clicking first-word match: {e}")
 
                         if not matched:
                             logging.error(f"[Carvana] Could not find any match for trim: {trim}")
