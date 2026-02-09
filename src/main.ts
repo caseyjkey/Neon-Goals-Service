@@ -5,6 +5,9 @@ import { AppModule } from './app.module';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // ADD THIS LINE - Global API prefix for production reverse proxy
+  app.setGlobalPrefix('api');
+
   // Enable CORS for the frontend
   const isDev = process.env.NODE_ENV !== 'production';
 

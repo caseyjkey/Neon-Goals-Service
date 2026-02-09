@@ -559,8 +559,8 @@ export class PlaidService {
             date: new Date(txn.date),
             name: txn.name,
             merchantName: txn.merchant_name || null,
-            category: txn.category || null,
-            categories: txn.categories || [],
+            category: txn.category?.[0] || null, // Primary category (first element)
+            categories: txn.category || [], // All categories from Plaid
             paymentChannel: txn.payment_channel,
             pending: txn.pending,
             authorizedDate: txn.authorized_date ? new Date(txn.authorized_date) : null,
