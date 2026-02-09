@@ -168,7 +168,7 @@ The worker runs on a separate server (typically `gilbert`) and:
 | Retailer | Script Used | Status | Notes |
 |----------|-------------|--------|-------|
 | **AutoTrader** | `scrape-autotrader.py` | ✅ Working | Uses Playwright, URL-based filtering |
-| **CarGurus** | `scrape-cars-camoufox.py` | ✅ Working | Interactive filter selection, Camoufox |
+| **CarGurus** | `scrape-cargurus.py` | ✅ Working | Interactive filter selection, Camoufox |
 | **CarMax** | `scrape-carmax.py` | ⚠️ Issues | URL correct but returns wrong vehicles |
 | **Carvana** | `scrape-carvana-interactive.py` | ⚠️ Partial | Interactive, can't find Sierra 3500HD/Denali Ultimate |
 | **TrueCar** | `scrape-truecar.py` | ⚠️ No Results | URL format or inventory issue |
@@ -189,7 +189,7 @@ The worker runs on a separate server (typically `gilbert`) and:
 **Solution:** Scrapers return `None` on bot detection, triggering VPN rotation:
 
 ```python
-# scrape-cars-camoufox.py
+# scrape-cargurus.py
 if not search_input:
     logging.error("Could not find search input - likely bot detection")
     return None  # Triggers VPN retry in worker
@@ -602,7 +602,7 @@ src/
 
 scripts/
 ├── parse_vehicle_query.py    # LLM filter generation
-├── scrape-cars-camoufox.py   # CarGurus scraper
+├── scrape-cargurus.py   # CarGurus scraper
 ├── scrape-autotrader.py      # AutoTrader scraper
 ├── scrape-carmax.py          # CarMax scraper
 ├── scrape-carvana.py         # Carvana scraper

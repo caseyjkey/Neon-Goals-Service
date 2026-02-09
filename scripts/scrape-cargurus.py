@@ -374,12 +374,13 @@ def build_search_url(
     base_url = "https://www.cargurus.com/search"
 
     # Build makeModelTrimPaths
-    # Correct format: makeModelTrimPaths={make},{make}/{model}/{trim},{make}/{model}
-    # Note: trim path comes BEFORE model path again at the end
+    # Correct format: makeModelTrimPaths={make},{make}/{model},{make}/{model}/{trim}
+    # Note: trim comes LAST as a third path option, NOT in the middle
     if trim:
         # URL encode the trim name (spaces become + or %20)
+        # Preserve original case (Denali Ultimate -> Denali+Ultimate)
         trim_encoded = trim.replace(' ', '+')
-        makeModelTrimPaths = f"{make_code},{make_code}/{model_code}/{trim_encoded},{make_code}/{model_code}"
+        makeModelTrimPaths = f"{make_code},{make_code}/{model_code},{make_code}/{model_code}/{trim_encoded}"
     else:
         makeModelTrimPaths = f"{make_code},{make_code}/{model_code}"
 
@@ -396,7 +397,11 @@ def build_search_url(
         if key in other_filters and other_filters[key]:
             value = str(other_filters[key])
             # Convert color values to UPPERCASE for CarGurus
+            # But skip placeholder values like "Color" or "color"
             if url_param == 'colors' or url_param == 'interiorColor':
+                # Skip if value is a placeholder, not an actual color
+                if value.lower() in ['color', 'exteriorcolor', 'interiorcolor', 'exterior color', 'interior color']:
+                    continue
                 value = value.upper()
             params[url_param] = value
 
@@ -832,7 +837,7 @@ async def main():
     """Main entry point"""
     if len(sys.argv) < 2:
         print(json.dumps({
-            "error": "Usage: scrape-cars-camoufox.py <JSON filters or structured> [max_results]",
+            "error": "Usage: scrape-cargurus.py <JSON filters or structured> [max_results]",
             "examples": [
                 '{"make": "GMC", "model": "Yukon", "zip": "94002", "trim": "Denali Ultimate"}',
                 '{"structured": {"makes": ["GMC"], "models": ["Sierra"]}}'  # From parse_vehicle_query.py"

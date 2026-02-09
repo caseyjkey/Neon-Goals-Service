@@ -40,7 +40,7 @@ def get_vpn_manager():
 
 # Scraper script mapping
 SCRAPER_SCRIPTS: Dict[str, str] = {
-    "cargurus-camoufox": "scrape-cars-camoufox.py",
+    "cargurus-camoufox": "scrape-cargurus.py",
     "carmax": "scrape-carmax.py",
     "autotrader": "scrape-autotrader.py",
     "truecar": "scrape-truecar.py",
