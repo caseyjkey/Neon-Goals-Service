@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Logger, Param } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Logger, Param, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlaidService } from './plaid.service';
 import { CreateLinkTokenDto, ExchangePublicTokenDto } from './dto';
@@ -90,6 +90,22 @@ export class PlaidController {
     this.logger.log(`Get transactions request from user: ${user.id} for account: ${accountId}`);
     // Default to last 30 days
     return this.plaidService.getAccountTransactions(accountId);
+  }
+
+  /**
+   * Get stored transactions from database (for AI agents and API access)
+   * GET /plaid/accounts/:accountId/transactions/stored?limit=100
+   */
+  @Get('accounts/:accountId/transactions/stored')
+  async getStoredTransactions(
+    @CurrentUser() user: User,
+    @Param('accountId') accountId: string,
+    @Query('limit') limit?: number,
+  ) {
+    this.logger.log(
+      `Get stored transactions request from user: ${user.id} for account: ${accountId}`,
+    );
+    return this.plaidService.getStoredTransactions(user.id, accountId, limit || 100);
   }
 
   /**

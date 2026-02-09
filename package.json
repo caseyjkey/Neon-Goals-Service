@@ -9,7 +9,7 @@
     "dev": "bun run start:dev",
     "build": "tsc",
     "start": "node dist/main.js",
-    "start:dev": "nodemon --exec ts-node src/main.ts",
+    "start:dev": "nest start --watch",
     "start:debug": "nodemon --inspect --exec ts-node src/main.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

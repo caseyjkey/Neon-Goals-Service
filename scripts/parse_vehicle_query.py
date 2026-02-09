@@ -87,9 +87,13 @@ Each retailer's scraper expects a different input format. Generate the exact for
 **SCRAPER INPUT FORMATS (generate exactly these formats):**
 
 1. **autotrader** - Generate a URL string directly:
-   - URL format: https://www.autotrader.com/cars-for-sale/{{make}}/{{model}}/{{trim}}?{{params}}
-   - Example: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500
+   - URL format: https://www.autotrader.com/cars-for-sale/{{color}}/{{make}}/{{model}}/{{trim}}?{{params}}
+   - IMPORTANT: Color goes FIRST in the path (before make), not as a query parameter
+   - Example with color: https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
+   - Example without color: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
+   - CRITICAL: zip is REQUIRED when using searchRadius - always include both
    - Make/model/trim should be lowercase with hyphens
+   - Color should be lowercase (black, white, gray, etc.) - omit if not specified
 
 2. **cargurus** - Generate a dict with these exact keys:
    {{make, model, zip, trim, yearMin, yearMax, minPrice, maxPrice, exteriorColor, interiorColor, drivetrain, fuelType, transmission, mileageMax}}
@@ -281,13 +285,19 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     retailers = {}
 
     # AutoTrader - URL string
+    # IMPORTANT: Color comes FIRST in the path (before make)
     make = makes[0].lower() if makes else 'all'
     model = models[0].lower().replace(' ', '-') if models else 'all'
-    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{make}/{model}"
+    autotrader_path = f"{make}/{model}"
+    if color:
+        autotrader_path = f"{color}/{autotrader_path}"
+    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{autotrader_path}?searchRadius=500&zip=94002"
     if year_min:
-        autotrader_url += f"?startYear={year_min}"
+        autotrader_url += f"&startYear={year_min}"
     if year_max:
         autotrader_url += f"&endYear={year_max}"
+    if max_price:
+        autotrader_url += f"&maxPrice={max_price}"
     retailers['autotrader'] = autotrader_url
 
     # CarGurus - dict format

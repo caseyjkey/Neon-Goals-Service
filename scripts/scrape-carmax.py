@@ -240,7 +240,12 @@ def build_carmax_url(
     if min_price or max_price:
         min_str = str(min_price) if min_price else ''
         max_str = str(max_price) if max_price else ''
-        params.append(f"price={min_str}-{max_str}")
+        if min_str and max_str:
+            params.append(f"price={min_str}-{max_str}")
+        elif max_str:
+            params.append(f"price={max_str}")
+        elif min_str:
+            params.append(f"price={min_str}-")
 
     params.append(f"showreservedcars={'true' if show_reserved else 'false'}")
 
@@ -342,23 +347,24 @@ async def scrape_carmax(search_arg: str, max_results: int = 10, search_filters: 
         # Wait for listings to load
         await asyncio.sleep(5)
 
-        # Check for "No results found" condition
-        page_text = await page.inner_text('body')
-        no_results_indicators = [
-            'No matching vehicles',
-            'No results found',
-            '0 results',
-            'No cars found',
-            'Try changing your search',
-            'No exact matches'
-        ]
-        if any(indicator in page_text for indicator in no_results_indicators):
-            logging.error(f"[CarMax] No results found - returning empty")
-            return []
-
         # Find all car tiles using the selector we discovered
         tiles = await page.query_selector_all('.kmx-car-tile')
         logging.error(f"[CarMax] Found {len(tiles)} total listings")
+
+        # If no tiles found, check for "no results" indicators
+        if len(tiles) == 0:
+            page_text = await page.inner_text('body')
+            no_results_indicators = [
+                'No matching vehicles',
+                'No results found',
+                '0 results',
+                'No cars found',
+                'Try changing your search',
+                'No exact matches'
+            ]
+            if any(indicator in page_text for indicator in no_results_indicators):
+                logging.error(f"[CarMax] No results found - returning empty")
+                return []
 
         # Filter out tiles from the "recommendations" section (similar vehicles)
         filtered_tiles = []
@@ -534,9 +540,15 @@ async def main():
     try:
         result = await scrape_carmax(search_arg, max_results, search_filters)
 
-        if not result:
-            print(json.dumps({"error": f"No CarMax listings found for '{search_arg}'"}))
+        # Handle different return types
+        # - []: no results found (valid empty response)
+        # - list with items: success
+        if not result or (isinstance(result, list) and len(result) == 0):
+            # No results - return empty list (NOT an error)
+            print("[]")
+            sys.stdout.flush()
         else:
+            # Success - return listings
             output = json.dumps(result, indent=2)
             print(output)
             sys.stdout.flush()

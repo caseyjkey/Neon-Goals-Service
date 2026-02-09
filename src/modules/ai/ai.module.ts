@@ -12,9 +12,10 @@ import { PrismaModule } from '../../config/prisma.module';
 import { ScraperModule } from '../scraper/scraper.module';
 import { ChatsModule } from '../chats/chats.module';
 import { AuthModule } from '../auth/auth.module';
+import { PlaidModule } from '../plaid/plaid.module';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, ScraperModule, ChatsModule, AuthModule],
+  imports: [ConfigModule, PrismaModule, ScraperModule, ChatsModule, AuthModule, PlaidModule],
   controllers: [AiController, AiGoalChatController, AiOverviewController, SpecialistController],
   providers: [AiService, GoalCommandService, GoalModificationService, OpenAIService, ConversationSummaryService],
   exports: [AiService, GoalCommandService, GoalModificationService, OpenAIService, ConversationSummaryService],

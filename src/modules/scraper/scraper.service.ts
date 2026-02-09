@@ -1215,20 +1215,15 @@ export class ScraperService {
     // Get denied and shortlisted candidates to filter out
     const deniedCandidates = (job.goal.itemData?.deniedCandidates as any[]) || [];
     const shortlistedCandidates = (job.goal.itemData?.shortlistedCandidates as any[]) || [];
-    const existingCandidates = (job.goal.itemData?.candidates as any[]) || [];
 
     const deniedUrls = new Set(deniedCandidates.map((c) => c.url));
     const shortlistedUrls = new Set(shortlistedCandidates.map((c) => c.url));
-    const existingUrls = new Set(existingCandidates.map((c) => c.url));
-    const excludedUrls = new Set([...deniedUrls, ...shortlistedUrls, ...existingUrls]);
+    // Only exclude user-actioned candidates (denied/shortlisted), NOT existing ones.
+    // Since candidates are fully replaced on each scrape (line ~1290), excluding existing URLs
+    // would cause permanent loss of vehicles with stable URLs across scrapes.
+    const excludedUrls = new Set([...deniedUrls, ...shortlistedUrls]);
 
-    this.logger.log(`Job ${jobId} filtering: ${deniedUrls.size} denied, ${shortlistedUrls.size} shortlisted, ${existingUrls.size} existing URLs`);
-
-    // DEBUG: Log the excluded URLs for debugging
-    if (existingUrls.size > 0) {
-      this.logger.log(`Existing URLs that will filter out new results:`);
-      existingUrls.forEach((url: string) => this.logger.log(`  - ${url.substring(0, 100)}...`));
-    }
+    this.logger.log(`Job ${jobId} filtering: ${deniedUrls.size} denied, ${shortlistedUrls.size} shortlisted`);
 
     // DEBUG: Check listings BEFORE filtering by retailer
     const beforeFilterByRetailer: Record<string, any[]> = {};

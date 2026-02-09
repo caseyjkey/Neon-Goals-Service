@@ -303,6 +303,9 @@ async def scrape_truecar_camoufox(search_filters: Dict[str, Any], max_results: i
     elif start_year and end_year:
         params.append(f'yearHigh={end_year}')
         params.append(f'yearLow={start_year}')
+    elif end_year:
+        # Only endYear specified (e.g., "2024 or older")
+        params.append(f'yearHigh={end_year}')
     # If no year info at all, don't add year filter to get broader results
 
     # Add price range if budget specified
@@ -364,16 +367,36 @@ async def scrape_truecar_camoufox(search_filters: Dict[str, Any], max_results: i
     try:
         page = await browser.new_page()
         await page.goto(search_url, wait_until='domcontentloaded', timeout=60000)
-        await asyncio.sleep(5)
+
+        # Wait for listing cards first
+        try:
+            await page.wait_for_selector('[data-test="vehicleListingCard"]', timeout=25000)
+        except:
+            # Timeout - page might not have loaded properly
+            logging.warning(f"[TrueCar] Timeout waiting for listing cards, attempting to continue...")
+
+        # Wait for pricing to load within cards (TrueCar loads pricing dynamically via JS)
+        try:
+            await page.wait_for_selector('[data-test="vehicleCardPricingPrice"]', timeout=10000)
+        except:
+            # If pricing doesn't load, continue anyway and try to extract
+            logging.warning(f"[TrueCar] Timeout waiting for pricing, attempting extraction anyway...")
 
         # Check for "No exact matches" condition - don't return similar cars
-        page_text = await page.inner_text('body')
-        if '0 Listings' in page_text or 'No exact matches' in page_text or 'Oops!' in page_text:
-            logging.error(f"[TrueCar] No exact matches found - returning empty results")
-            return []
-
+        # BUT first try to extract listings - only return empty if truly no listings found
         listings = await page.query_selector_all('[data-test="vehicleListingCard"]')
         logging.error(f"[TrueCar] Found {len(listings)} listings")
+
+        if len(listings) == 0:
+            # Only check for "no results" text if we found no listings
+            try:
+                page_text = await page.inner_text('body', timeout=5000)
+                if '0 Listings' in page_text or 'No exact matches' in page_text or 'Oops!' in page_text:
+                    logging.error(f"[TrueCar] No exact matches found - returning empty results")
+                    return []
+            except Exception as e:
+                logging.warning(f"[TrueCar] Could not read page text: {e}")
+            return []
 
         for i, listing in enumerate(listings[:max_results]):
             try:
@@ -463,12 +486,38 @@ async def main():
             # Use adapter to convert structured to TrueCar params
             search_filters = adapt_structured_to_truecar(search_filters['structured'])
 
+        # Handle LLM retailer-specific format (plural keys → singular)
+        if 'makes' in search_filters and 'make' not in search_filters:
+            makes = search_filters.pop('makes', [])
+            if makes:
+                search_filters['make'] = makes[0]
+        if 'models' in search_filters and 'model' not in search_filters:
+            models = search_filters.pop('models', [])
+            if models:
+                search_filters['model'] = models[0]
+        if 'yearMin' in search_filters and 'startYear' not in search_filters:
+            search_filters['startYear'] = search_filters.pop('yearMin')
+        if 'yearMax' in search_filters and 'endYear' not in search_filters:
+            search_filters['endYear'] = search_filters.pop('yearMax')
+        if 'maxPrice' in search_filters and 'budget' not in search_filters:
+            search_filters['budget'] = search_filters.pop('maxPrice')
+
         result = await scrape_truecar(search_filters, max_results)
 
-        if not result:
-            print(json.dumps({"error": f"No TrueCar listings found"}))
+        # Handle different return types
+        # - None: error (bot detection or other issue)
+        # - []: no results found (valid empty response)
+        # - list with items: success
+        if result is None:
+            print(json.dumps({"error": "TrueCar scraping failed"}))
+            sys.stdout.flush()
+            sys.exit(1)
+        elif not result or (isinstance(result, list) and len(result) == 0):
+            # No results - return empty list (NOT an error)
+            print("[]")
             sys.stdout.flush()
         else:
+            # Success - return listings
             output = json.dumps(result, indent=2)
             print(output)
             sys.stdout.flush()

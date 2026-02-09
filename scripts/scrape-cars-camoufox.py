@@ -394,10 +394,19 @@ def build_search_url(
     # Add other filters using the parameter mapping
     for key, url_param in FILTER_PARAM_MAPPING.items():
         if key in other_filters and other_filters[key]:
-            params[url_param] = str(other_filters[key])
+            value = str(other_filters[key])
+            # Convert color values to UPPERCASE for CarGurus
+            if url_param == 'colors' or url_param == 'interiorColor':
+                value = value.upper()
+            params[url_param] = value
 
     # Build query string
-    query_parts = [f"{k}={v}" for k, v in params.items()]
+    query_parts = []
+    for k, v in params.items():
+        # URL encode the value (especially for colors like "BLACK" and trim with spaces)
+        import urllib.parse
+        if v:
+            query_parts.append(f"{k}={urllib.parse.quote_plus(str(v))}")
     return f"{base_url}?{'&'.join(query_parts)}"
 
 
@@ -842,11 +851,59 @@ async def main():
             # Use adapter to convert structured to CarGurus params
             filters = adapt_structured_to_cargurus(filters['structured'])
 
+        # Handle LLM search_query format: {"search_query": "GMC Sierra 3500HD Denali Ultimate", "years": "2023-2024", ...}
+        if 'search_query' in filters and 'make' not in filters:
+            sq = filters['search_query']
+            parts = sq.split()
+            # Known trim keywords to split model from trim
+            trim_keywords = {'Denali', 'AT4', 'SLE', 'SLT', 'Elevation', 'Pro', 'Base', 'Limited', 'Platinum', 'Canyon'}
+            if parts:
+                filters['make'] = parts[0]
+                model_parts = []
+                trim_parts = []
+                for part in parts[1:]:
+                    if part in trim_keywords or trim_parts:
+                        trim_parts.append(part)
+                    else:
+                        model_parts.append(part)
+                if model_parts:
+                    filters['model'] = ' '.join(model_parts)
+                if trim_parts:
+                    filters['trim'] = ' '.join(trim_parts)
+            logging.error(f"Parsed search_query: make={filters.get('make')}, model={filters.get('model')}, trim={filters.get('trim')}")
+
+        # Convert "years" format "2023-2024" to yearMin/yearMax
+        if 'years' in filters and 'yearMin' not in filters:
+            years_str = str(filters.pop('years'))
+            if '-' in years_str:
+                year_parts = years_str.split('-')
+                filters['yearMin'] = int(year_parts[0])
+                filters['yearMax'] = int(year_parts[1])
+
+        # Convert string values to int where needed
+        if 'distance' in filters:
+            filters['distance'] = int(filters['distance'])
+        if 'maxPrice' in filters:
+            filters['maxPrice'] = int(filters['maxPrice'])
+        if 'minPrice' in filters:
+            filters['minPrice'] = int(filters['minPrice'])
+
         result = await scrape_cars(filters, max_results)
 
-        if not result:
-            print(json.dumps({"error": f"No car listings found for {filters}"}))
+        # Handle different return types
+        # - None: bot detection (worker will retry with VPN)
+        # - []: no results found (valid empty response)
+        # - list with items: success
+        if result is None:
+            print(json.dumps({"error": "Bot detection - retry with VPN"}))
+            sys.stdout.flush()
+            sys.exit(1)
+        elif not result or (isinstance(result, list) and len(result) == 0):
+            # No results - return empty list (NOT an error)
+            print("[]")
+            sys.stdout.flush()
         else:
+            # Success - return listings
             output = json.dumps(result, indent=2)
             print(output)
             sys.stdout.flush()
@@ -856,9 +913,11 @@ async def main():
                 f.flush()
     except json.JSONDecodeError:
         print(json.dumps({"error": "Invalid JSON filters"}))
+        sys.stdout.flush()
         sys.exit(1)
     except Exception as e:
         print(json.dumps({"error": str(e)}))
+        sys.stdout.flush()
         sys.exit(1)
 
 

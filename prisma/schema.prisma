@@ -317,10 +317,48 @@ model PlaidAccount {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
 
+  // Relations
+  transactions    PlaidTransaction[]
+
   @@index([userId])
   @@index([itemId])
   @@index([plaidAccountId])
   @@index([financeGoalId])
+}
+
+// Plaid transactions - synced weekly for AI analysis
+model PlaidTransaction {
+  id              String   @id @default(cuid())
+  plaidAccountId  String
+  account         PlaidAccount @relation(fields: [plaidAccountId], references: [id], onDelete: Cascade)
+
+  // Plaid transaction data
+  transactionId   String   // Plaid's unique transaction ID
+  amount          Float
+  currency        String   @default("USD")
+  date            DateTime
+  name            String   // Transaction description
+  merchantName    String?  // Merchant name if available
+  category        String?  // Primary category
+  categories      String[] // All categories (stored as array)
+  paymentChannel  String?  // online, in store, etc.
+  pending         Boolean  @default(false)
+
+  // Optional rich data
+  authorizedDate  DateTime?
+  locationData    Json?    // {address, city, state, zip, lat, lon}
+  transactionType String?
+
+  // Metadata
+  lastSync        DateTime @default(now())
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([plaidAccountId, transactionId]) // Prevent duplicates
+  @@index([plaidAccountId, date]) // For date-range queries
+  @@index([date]) // For global queries
+  @@index([plaidAccountId])
 }
 
 // Scrape Jobs

@@ -1,10 +1,11 @@
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Injectable, Logger, OnModuleInit, Optional } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from '../../config/prisma.service';
 import { ConversationSummaryService } from './conversation-summary.service';
 import { SPECIALIST_PROMPTS } from './specialist-prompts';
 import OpenAI from 'openai';
 import { ChatCompletionMessageParam } from 'openai/resources';
+import { PlaidService } from '../plaid/plaid.service';
 
 export interface CreateThreadResponse {
   threadId: string;
@@ -53,6 +54,7 @@ export class OpenAIService implements OnModuleInit {
     private configService: ConfigService,
     private prisma: PrismaService,
     private summaryService: ConversationSummaryService,
+    @Optional() private plaidService?: PlaidService,
   ) {
     this.apiKey = this.configService.get<string>('OPENAI_API_KEY') || '';
   }
@@ -745,7 +747,7 @@ When you want to take specific actions, use these formats:
 
 **Create a new main goal:**
 \`\`\`
-CREATE_GOAL: {"type":"action","title":"<title>","description":"<description>","deadline":"<optional-ISO-8601-date>"}
+CREATE_GOAL: {"type":"action","title":"<title>","description":"<description>","deadline":"<optional-ISO-8601-date>","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
 \`\`\`
 
 **Deadline format:** Use ISO 8601 format (YYYY-MM-DDTHH:mm:ss). Example: "2025-02-02T23:59:59"
@@ -753,12 +755,12 @@ CREATE_GOAL: {"type":"action","title":"<title>","description":"<description>","d
 
 For action goals, you can also include tasks:
 \`\`\`
-CREATE_GOAL: {"type":"action","title":"<title>","description":"<description>","tasks":[{"title":"<task1>"},{"title":"<task2>"},{"title":"<task3>"}]}
+CREATE_GOAL: {"type":"action","title":"<title>","description":"<description>","tasks":[{"title":"<task1>"},{"title":"<task2>"},{"title":"<task3>}],"proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
 \`\`\`
 
 **For finance goals (savings, budgets, financial targets):**
 \`\`\`
-CREATE_GOAL: {"type":"finance","title":"<title>","description":"<description>","targetBalance":<number>,"currentBalance":<number>}
+CREATE_GOAL: {"type":"finance","title":"<title>","description":"<description>","targetBalance":<number>,"currentBalance":<number>,"proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
 \`\`\`
 
 **Important for finance goals:**
@@ -768,7 +770,7 @@ CREATE_GOAL: {"type":"finance","title":"<title>","description":"<description>","
 
 **For item goals (products to buy):**
 \`\`\`
-CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","budget":<number>,"category":"<category>"}
+CREATE_GOAL: {"type":"item","title":"<title>","description":"<description>","budget":<number>,"category":"<category>","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
 \`\`\`
 
 **Item categories** - You MUST determine the appropriate category based on what the user is buying:
@@ -822,11 +824,14 @@ CREATE_GOAL: {"type":"item","title":"GMC Sierra 3500HD Denali Ultimate","descrip
 **CRITICAL - Ask for essential vehicle filters BEFORE creating the goal:**
 When the user wants to create a vehicle goal and hasn't specified these details, you MUST ask:
 1. **Make & Model** - If not specified (e.g., "GMC Yukon", "Toyota Camry")
-2. **ZIP Code** - Required for local search
+2. **ZIP Code** - **REQUIRED** for local search radius to work (searchRadius fails without zip)
 3. **Search Distance** - Miles from ZIP (e.g., 50, 100, 200 miles)
 4. **Budget Range** - minPrice/maxPrice
 5. **Year Range** - yearMin/yearMax (e.g., 2015-2022)
 6. **Color** - Exterior color preference (Black, White, Gray, Blue, etc.)
+
+**IMPORTANT ZIP CODE REQUIREMENT:**
+AutoTrader and other retailers REQUIRE a ZIP code for the searchRadius filter to work. If the user doesn't provide a ZIP code, you MUST ask for it before creating the goal. Without a ZIP code, the search will not return local results.
 
 Only after gathering missing details should you output the CREATE_GOAL command with a complete searchTerm.
 
@@ -2010,13 +2015,37 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
       const specialistPrompt = SPECIALIST_PROMPTS[categoryId as keyof typeof SPECIALIST_PROMPTS] || SPECIALIST_PROMPTS.items;
 
       // Create system prompt with category goals context
-      const systemPrompt = `${specialistPrompt}
+      let systemPrompt = `${specialistPrompt}
 
 ## User's ${categoryId.toUpperCase()} Goals
 
 ${this.formatGoalList(categoryGoals)}
 
 You can reference and modify these goals through conversational commands. Reference them by title when discussing.`;
+
+      // Add transaction data for finances category
+      if (categoryId === 'finances' && this.plaidService) {
+        try {
+          const transactionSummary = await this.plaidService.getTransactionSummaryForAI(userId);
+          if (transactionSummary.totalTransactions > 0) {
+            systemPrompt += `
+
+## Recent Transaction Data
+
+${transactionSummary.totalTransactions} transactions found across ${transactionSummary.accounts.length} accounts:
+
+${transactionSummary.accounts.map(acc => `
+**${acc.institutionName} - ${acc.accountName}** (${acc.transactionCount} transactions)
+${acc.recentTransactions.slice(0, 20).map(t =>
+  `- ${t.date}: ${t.merchantName} - $${t.amount} (${t.category})`
+).join('\n')}
+`).join('\n')}`;
+          }
+        } catch (error) {
+          this.logger.warn('Failed to fetch transaction summary for AI context:', error);
+          // Continue without transaction data on error
+        }
+      }
 
       // Create messages
       const messages: ChatCompletionMessageParam[] = [
@@ -2099,13 +2128,37 @@ You can reference and modify these goals through conversational commands. Refere
       const specialistPrompt = SPECIALIST_PROMPTS[categoryId as keyof typeof SPECIALIST_PROMPTS] || SPECIALIST_PROMPTS.items;
 
       // Create system prompt with category goals context
-      const systemPrompt = `${specialistPrompt}
+      let systemPrompt = `${specialistPrompt}
 
 ## User's ${categoryId.toUpperCase()} Goals
 
 ${this.formatGoalList(categoryGoals)}
 
 You can reference and modify these goals through conversational commands. Reference them by title when discussing.`;
+
+      // Add transaction data for finances category
+      if (categoryId === 'finances' && this.plaidService) {
+        try {
+          const transactionSummary = await this.plaidService.getTransactionSummaryForAI(userId);
+          if (transactionSummary.totalTransactions > 0) {
+            systemPrompt += `
+
+## Recent Transaction Data
+
+${transactionSummary.totalTransactions} transactions found across ${transactionSummary.accounts.length} accounts:
+
+${transactionSummary.accounts.map(acc => `
+**${acc.institutionName} - ${acc.accountName}** (${acc.transactionCount} transactions)
+${acc.recentTransactions.slice(0, 20).map(t =>
+  `- ${t.date}: ${t.merchantName} - $${t.amount} (${t.category})`
+).join('\n')}
+`).join('\n')}`;
+          }
+        } catch (error) {
+          this.logger.warn('Failed to fetch transaction summary for AI context:', error);
+          // Continue without transaction data on error
+        }
+      }
 
       // Create messages
       const messages: ChatCompletionMessageParam[] = [

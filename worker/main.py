@@ -118,9 +118,10 @@ def run_scraper_and_callback(
             raise FileNotFoundError(f"Script not found: {script_path}")
 
         # Build the command using xvfb-run for virtual display
-        # This creates a virtual X server with proper resolution (1920x1080x24)
-        # which helps avoid bot detection
+        # --auto-servernum ensures each invocation gets a unique display number,
+        # preventing conflicts when scrapers run sequentially
         python_bin = "/home/alpha/.pyenv/versions/3.12.0/bin/python3.12"
+        xvfb_args = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0 1920x1080x24"]
 
         # Different scrapers expect different parameter formats
         import json as json_mod
@@ -135,20 +136,20 @@ def run_scraper_and_callback(
                 # Old format: structured data, use adapter
                 scraper_input = json_mod.dumps({"structured": vehicle_filters})
             command = [
-                "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                *xvfb_args,
                 python_bin, script_path, scraper_input, "10"
             ]
         elif scraper_name in ["cargurus-camoufox", "truecar", "carmax", "carvana"] and vehicle_filters:
             # These scrapers expect dict with their specific keys - pass JSON directly
             filters_json = json_mod.dumps(vehicle_filters)
             command = [
-                "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                *xvfb_args,
                 python_bin, script_path, filters_json, "10"
             ]
         else:
             # Fallback to plain query string for scrapers without filters
             command = [
-                "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                *xvfb_args,
                 python_bin, script_path, f"'{query}'", "10"
             ]
 
@@ -466,10 +467,12 @@ def run_all_scrapers_and_callback(
                 retailer_data = vehicle_filters["retailers"].get(retailer_key)
 
                 if retailer_data:
-                    # New LLM format: retailer-specific data directly
-                    # AutoTrader: URL string
-                    # Others: Dict with scraper-specific keys
-                    scraper_filters = retailer_data
+                    # Unwrap {"filters": {...}} envelope if present
+                    # AutoTrader is a URL string, others are dicts
+                    if isinstance(retailer_data, dict) and "filters" in retailer_data:
+                        scraper_filters = retailer_data["filters"]
+                    else:
+                        scraper_filters = retailer_data
                     logger.info(f"Using LLM-generated filters for {scraper_name}")
                 else:
                     # Fall back to generic filters if retailer not found
@@ -573,9 +576,10 @@ def run_single_scraper(
                 raise FileNotFoundError(f"Script not found: {script_path}")
 
             # Build the command using xvfb-run for virtual display
-            # This creates a virtual X server with proper resolution (1920x1080x24)
-            # which helps avoid bot detection
+            # --auto-servernum ensures each invocation gets a unique display number,
+            # preventing conflicts when scrapers run sequentially
             python_bin = "/home/alpha/.pyenv/versions/3.12.0/bin/python3.12"
+            xvfb_args = ["xvfb-run", "--auto-servernum", "--server-args=-screen 0 1920x1080x24"]
 
             # Different scrapers expect different parameter formats
             import json as json_mod
@@ -590,20 +594,20 @@ def run_single_scraper(
                     # Old format: structured data, use adapter
                     scraper_input = json_mod.dumps({"structured": vehicle_filters})
                 command = [
-                    "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                    *xvfb_args,
                     python_bin, script_path, scraper_input, "10"
                 ]
             elif scraper_name in ["cargurus-camoufox", "truecar", "carmax", "carvana"] and vehicle_filters:
                 # These scrapers expect dict with their specific keys - pass JSON directly
                 filters_json = json_mod.dumps(vehicle_filters)
                 command = [
-                    "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                    *xvfb_args,
                     python_bin, script_path, filters_json, "10"
                 ]
             else:
                 # Fallback to plain query string for scrapers without filters
                 command = [
-                    "xvfb-run", "--server-args=-screen 0 1920x1080x24",
+                    *xvfb_args,
                     python_bin, script_path, f"'{query}'", "10"
                 ]
 
@@ -669,6 +673,11 @@ def run_single_scraper(
                 logger.warning(f"{scraper_name}: Returned None (bot detection)")
                 if attempt < max_vpn_retries and vpn:
                     continue  # Retry with VPN
+                return []
+
+            # Check for error dict (scraper returned {"error": "..."} directly)
+            if isinstance(data, dict) and "error" in data:
+                logger.warning(f"{scraper_name} returned error dict: {data['error']}")
                 return []
 
             if isinstance(data, list) and len(data) > 0 and isinstance(data[0], dict):

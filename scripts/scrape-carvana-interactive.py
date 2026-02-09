@@ -506,6 +506,33 @@ async def main():
             filters = adapt_structured_to_carvana_interactive(filters['structured'])
             logging.error(f"[Carvana] Adapter returned: {filters}")
 
+        # Handle LLM search_query format: {"search_query": "GMC Sierra 3500HD Denali Ultimate", ...}
+        if 'search_query' in filters and 'make' not in filters:
+            sq = filters['search_query']
+            parts = sq.split()
+            # Split make, model, and trim using known trim keywords
+            trim_keywords = {'Denali', 'AT4', 'SLE', 'SLT', 'Elevation', 'Pro', 'Limited', 'Platinum', 'Canyon'}
+            if parts:
+                filters['make'] = parts[0]
+                model_parts = []
+                trim_parts = []
+                for part in parts[1:]:
+                    if part in trim_keywords or trim_parts:
+                        trim_parts.append(part)
+                    else:
+                        model_parts.append(part)
+                if model_parts:
+                    raw_model = ' '.join(model_parts)
+                    filters['model'] = normalize_model_for_site(raw_model, 'carvana')
+                if trim_parts:
+                    # Use just the first keyword for broad matching (selects all Denali variants)
+                    filters['trims'] = [trim_parts[0]]
+            logging.error(f"[Carvana] Parsed search_query: make={filters.get('make')}, model={filters.get('model')}, trims={filters.get('trims')}")
+
+        # Convert year_min/year_max to year (Carvana scraper uses single year)
+        if 'year_min' in filters and 'year' not in filters:
+            filters['year'] = int(filters['year_max']) if filters.get('year_max') else int(filters['year_min'])
+
         logging.error(f"[Carvana] Calling scrape_carvana_interactive with make={filters.get('make')}, model={filters.get('model')}, trims={filters.get('trims')}, year={filters.get('year')}")
 
         result = await scrape_carvana_interactive(

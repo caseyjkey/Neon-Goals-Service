@@ -20,6 +20,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   async validate(payload: any) {
     const user = await this.authService.validateUser(payload.sub);
     return {
+      userId: user.id,  // Match what @CurrentUser() decorator expects
       id: user.id,
       email: user.email,
       name: user.name,

@@ -6,14 +6,21 @@
   "search_path": "/cars-for-sale",
   "note": "AutoTrader uses URL path for make/model/trim and query params for other filters. Filter options are dynamically loaded.",
   "url_format": {
-    "pattern": "/cars-for-sale/{make}/{model}/{trim}/{location}?{params}",
-    "example": "https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate/san-mateo-ca?endYear=2024&searchRadius=500",
+    "pattern": "/cars-for-sale/{color}/{make}/{model}/{trim}?{params}",
+    "example": "https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500/denali-ultimate?endYear=2024&searchRadius=500&zip=94002",
+    "example_no_color": "https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate?endYear=2024&searchRadius=500&zip=94002",
     "path_components": {
+      "color": "Exterior color (lowercase, goes FIRST in path before make: black, white, gray, silver, blue, red, etc.) - omit if not specified",
       "make": "Vehicle make (lowercase, hyphens for spaces: gmc, ford, chevrolet)",
       "model": "Vehicle model (lowercase, hyphens for spaces: sierra-3500, f-150)",
-      "trim": "Trim level (lowercase, hyphens for spaces: denali-ultimate, lariat)",
-      "location": "{city}-{state} or zip code (e.g., san-mateo-ca or 94401)"
-    }
+      "trim": "Trim level (lowercase, hyphens for spaces: denali-ultimate, lariat)"
+    },
+    "important_notes": [
+      "Color MUST be in the URL path, NOT as a query parameter (extColor query param doesn't work correctly)",
+      "Color comes FIRST in the path before the make",
+      "zip is REQUIRED when using searchRadius - always include both together",
+      "Location (city-state) is no longer used in the path - use zip code query param instead"
+    ]
   },
   "url_parameters": {
     "searchRadius": "Search radius in miles from location (default: 500)",
@@ -121,11 +128,9 @@
     },
     {
       "name": "Color",
-      "type": "chip",
-      "url_params": {
-        "exterior": "extColor",
-        "interior": "intColor"
-      },
+      "type": "path_component",
+      "note": "Exterior color goes in the URL path BEFORE the make (not as a query parameter). Interior color uses intColor query param.",
+      "path_position": "first",
       "options": {
         "exterior": [
           { "label": "Black", "value": "black" },
@@ -138,15 +143,18 @@
           { "label": "Brown", "value": "brown" },
           { "label": "Beige", "value": "beige" },
           { "label": "Gold", "value": "gold" }
-        ],
-        "interior": [
-          { "label": "Black", "value": "black" },
-          { "label": "Gray", "value": "gray" },
-          { "label": "Beige", "value": "beige" },
-          { "label": "Brown", "value": "brown" },
-          { "label": "Tan", "value": "tan" }
         ]
-      }
+      },
+      "url_param": {
+        "interior": "intColor"
+      },
+      "interior_options": [
+        { "label": "Black", "value": "black" },
+        { "label": "Gray", "value": "gray" },
+        { "label": "Beige", "value": "beige" },
+        { "label": "Brown", "value": "brown" },
+        { "label": "Tan", "value": "tan" }
+      ]
     },
     {
       "name": "Drive Type",

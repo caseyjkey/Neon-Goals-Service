@@ -99,72 +99,115 @@ export class PlaidService {
     }>;
     itemId: string;
   }> {
-    this.logger.log(`Linking Plaid account for user: ${userId}`);
+    this.logger.log(`Linking Plaid account for user: ${userId}, token: ${publicToken?.substring(0, 20)}...`);
 
-    // Exchange public token for access token
-    const exchangeResponse = await this.plaidClient.itemPublicTokenExchange({
-      public_token: publicToken,
-    });
-
-    const { access_token, item_id } = exchangeResponse.data;
-
-    // Get item info (institution details)
-    const itemResponse = await this.plaidClient.itemGet({
-      access_token: access_token,
-    });
-
-    const institution = itemResponse.data.item.institution_id
-      ? await this.getInstitutionName(itemResponse.data.item.institution_id)
-      : { name: 'Unknown Bank', logo: '' };
-
-    // Get accounts with balances
-    const accountsResponse = await this.plaidClient.accountsBalanceGet({
-      access_token: access_token,
-    });
-
-    const savedAccounts = [];
-
-    for (const account of accountsResponse.data.accounts) {
-      // Only save depository accounts (savings, checking)
-      if (account.type !== 'depository') {
-        continue;
-      }
-
-      const plaidAccount = await this.prisma.plaidAccount.create({
-        data: {
-          userId,
-          accessToken: access_token,
-          itemId: item_id,
-          plaidAccountId: account.account_id,
-          institutionName: institution.name,
-          institutionId: itemResponse.data.item.institution_id || 'unknown',
-          accountName: account.name,
-          accountMask: account.mask,
-          accountType: account.type,
-          accountSubtype: account.subtype?.[0] || 'unknown',
-          currentBalance: account.balances.current || 0,
-          availableBalance: account.balances.available || null,
-          currency: account.balances.iso_currency_code || 'USD',
-        },
-      });
-
-      savedAccounts.push({
-        id: plaidAccount.id,
-        accountName: plaidAccount.accountName,
-        institutionName: plaidAccount.institutionName,
-        accountMask: plaidAccount.accountMask,
-        accountType: plaidAccount.accountType,
-        accountSubtype: plaidAccount.accountSubtype,
-        currentBalance: plaidAccount.currentBalance,
-      });
-
-      this.logger.log(`Saved account: ${plaidAccount.accountName} (${plaidAccount.accountMask})`);
+    if (!publicToken) {
+      throw new BadRequestException('Public token is required');
     }
 
-    return {
-      accounts: savedAccounts,
-      itemId: item_id,
-    };
+    try {
+      // Exchange public token for access token
+      this.logger.log('Exchanging public token for access token...');
+      const exchangeResponse = await this.plaidClient.itemPublicTokenExchange({
+        public_token: publicToken,
+      });
+
+      const { access_token, item_id } = exchangeResponse.data;
+      this.logger.log(`Token exchanged successfully, item_id: ${item_id}`);
+
+      // Get item info (institution details)
+      this.logger.log('Fetching item info...');
+      const itemResponse = await this.plaidClient.itemGet({
+        access_token: access_token,
+      });
+
+      const institution = itemResponse.data.item.institution_id
+        ? await this.getInstitutionName(itemResponse.data.item.institution_id)
+        : { name: 'Unknown Bank', logo: '' };
+
+      this.logger.log(`Institution: ${institution.name}`);
+
+      // Get accounts with balances
+      this.logger.log('Fetching accounts with balances...');
+      const accountsResponse = await this.plaidClient.accountsBalanceGet({
+        access_token: access_token,
+      });
+
+      this.logger.log(`Found ${accountsResponse.data.accounts.length} accounts`);
+
+      const savedAccounts = [];
+
+      for (const account of accountsResponse.data.accounts) {
+        // Only save depository accounts (savings, checking)
+        if (account.type !== 'depository') {
+          this.logger.log(`Skipping ${account.type} account: ${account.name}`);
+          continue;
+        }
+
+        this.logger.log(`Saving depository account: ${account.name} (${account.mask})`);
+
+        try {
+          const plaidAccount = await this.prisma.plaidAccount.create({
+            data: {
+              userId,
+              accessToken: access_token,
+              itemId: item_id,
+              plaidAccountId: account.account_id,
+              institutionName: institution.name,
+              institutionId: itemResponse.data.item.institution_id || 'unknown',
+              accountName: account.name,
+              accountMask: account.mask,
+              accountType: account.type,
+              accountSubtype: account.subtype?.[0] || 'unknown',
+              currentBalance: account.balances.current || 0,
+              availableBalance: account.balances.available || null,
+              currency: account.balances.iso_currency_code || 'USD',
+            },
+          });
+
+          savedAccounts.push({
+            id: plaidAccount.id,
+            accountName: plaidAccount.accountName,
+            institutionName: plaidAccount.institutionName,
+            accountMask: plaidAccount.accountMask,
+            accountType: plaidAccount.accountType,
+            accountSubtype: plaidAccount.accountSubtype,
+            currentBalance: plaidAccount.currentBalance,
+          });
+
+          this.logger.log(`Saved account: ${plaidAccount.accountName} (${plaidAccount.accountMask})`);
+        } catch (dbError: any) {
+          this.logger.error(`Failed to save account ${account.name}: ${dbError.message}`);
+          throw new BadRequestException(`Failed to save account: ${dbError.message}`);
+        }
+      }
+
+      this.logger.log(`Successfully linked ${savedAccounts.length} accounts`);
+
+      return {
+        accounts: savedAccounts,
+        itemId: item_id,
+      };
+    } catch (error: any) {
+      // Log detailed Plaid error
+      const plaidError = error?.response?.data;
+      this.logger.error('Plaid link account failed:', {
+        status: error?.response?.status,
+        errorCode: plaidError?.error_code,
+        errorMessage: plaidError?.error_message,
+        errorType: plaidError?.error_type,
+        requestType: plaidError?.request_type,
+        fullError: error?.message || error,
+      });
+
+      if (plaidError?.error_code === 'ITEM_LOGIN_REQUIRED') {
+        throw new BadRequestException('Plaid account requires re-authentication. Please link again.');
+      }
+
+      throw new BadRequestException(
+        plaidError?.error_message || error?.message || 'Failed to link Plaid account',
+      );
+    }
   }
 
   /**
@@ -462,6 +505,186 @@ export class PlaidService {
       totalTransactions: accountTransactions.length,
       startDate: start,
       endDate: end,
+    };
+  }
+
+  /**
+   * Fetch transactions from Plaid and store in database
+   * Returns count of stored and skipped transactions
+   */
+  async fetchAndStoreTransactions(
+    plaidAccountId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<{ stored: number; skipped: number }> {
+    const account = await this.prisma.plaidAccount.findUnique({
+      where: { id: plaidAccountId },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Plaid account not found');
+    }
+
+    const response = await this.plaidClient.transactionsGet({
+      access_token: account.accessToken,
+      start_date: startDate,
+      end_date: endDate,
+    });
+
+    const accountTransactions = response.data.transactions.filter(
+      (t) => t.account_id === account.plaidAccountId,
+    );
+
+    this.logger.log(
+      `Fetched ${accountTransactions.length} transactions for ${account.accountName}`,
+    );
+
+    let stored = 0;
+    let skipped = 0;
+
+    for (const txn of accountTransactions) {
+      try {
+        await this.prisma.plaidTransaction.upsert({
+          where: {
+            plaidAccountId_transactionId: {
+              plaidAccountId: account.id,
+              transactionId: txn.transaction_id,
+            },
+          },
+          create: {
+            plaidAccountId: account.id,
+            transactionId: txn.transaction_id,
+            amount: Math.abs(txn.amount), // Store as positive for consistency
+            currency: txn.iso_currency_code || 'USD',
+            date: new Date(txn.date),
+            name: txn.name,
+            merchantName: txn.merchant_name || null,
+            category: txn.category || null,
+            categories: txn.categories || [],
+            paymentChannel: txn.payment_channel,
+            pending: txn.pending,
+            authorizedDate: txn.authorized_date ? new Date(txn.authorized_date) : null,
+            locationData: txn.location ? JSON.stringify(txn.location) : null,
+            transactionType: txn.transaction_type,
+          },
+          update: {
+            amount: Math.abs(txn.amount),
+            pending: txn.pending,
+            // Update pending status when transaction settles
+            updatedAt: new Date(),
+          },
+        });
+        stored++;
+      } catch (error: any) {
+        this.logger.warn(
+          `Failed to store transaction ${txn.transaction_id}: ${error.message}`,
+        );
+        skipped++;
+      }
+    }
+
+    // Update lastSync on account
+    await this.prisma.plaidAccount.update({
+      where: { id: plaidAccountId },
+      data: { lastSync: new Date() },
+    });
+
+    this.logger.log(
+      `Stored ${stored} transactions, skipped ${skipped} for account ${plaidAccountId}`,
+    );
+
+    return { stored, skipped };
+  }
+
+  /**
+   * Get transaction summary for AI agent context
+   * Returns recent transactions across all user's accounts
+   */
+  async getTransactionSummaryForAI(userId: string): Promise<{
+    totalTransactions: number;
+    accounts: Array<{
+      accountName: string;
+      institutionName: string;
+      transactionCount: number;
+      recentTransactions: Array<{
+        date: string;
+        amount: number;
+        merchantName: string;
+        category: string;
+      }>;
+    }>;
+  }> {
+    const accounts = await this.prisma.plaidAccount.findMany({
+      where: { userId, isActive: true },
+      include: {
+        transactions: {
+          orderBy: { date: 'desc' },
+          take: 50, // Last 50 transactions per account
+        },
+      },
+    });
+
+    return {
+      totalTransactions: accounts.reduce(
+        (sum, a) => sum + a.transactions.length,
+        0,
+      ),
+      accounts: accounts
+        .filter((a) => a.transactions.length > 0)
+        .map((account) => ({
+          accountName: account.accountName,
+          institutionName: account.institutionName,
+          transactionCount: account.transactions.length,
+          recentTransactions: account.transactions.map((t) => ({
+            date: t.date.toISOString().split('T')[0],
+            amount: t.amount,
+            merchantName: t.merchantName || t.name,
+            category: t.category || 'uncategorized',
+          })),
+        })),
+    };
+  }
+
+  /**
+   * Get stored transactions from database (for AI agents and API access)
+   */
+  async getStoredTransactions(
+    userId: string,
+    plaidAccountId: string,
+    limit = 100,
+  ) {
+    // Verify account belongs to user
+    const account = await this.prisma.plaidAccount.findFirst({
+      where: { id: plaidAccountId, userId },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    const transactions = await this.prisma.plaidTransaction.findMany({
+      where: { plaidAccountId },
+      orderBy: { date: 'desc' },
+      take: limit,
+    });
+
+    return {
+      accountId: plaidAccountId,
+      accountName: account.accountName,
+      institutionName: account.institutionName,
+      transactions: transactions.map((t) => ({
+        id: t.transactionId,
+        amount: t.amount,
+        currency: t.currency,
+        date: t.date,
+        name: t.name,
+        merchantName: t.merchantName,
+        category: t.category,
+        categories: t.categories,
+        paymentChannel: t.paymentChannel,
+        pending: t.pending,
+      })),
+      total: transactions.length,
     };
   }
 }

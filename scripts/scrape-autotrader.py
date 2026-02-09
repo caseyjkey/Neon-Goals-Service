@@ -63,11 +63,15 @@ def adapt_structured_to_autotrader(structured: dict) -> str:
         url_params = structured.get('url_params', {})
 
         # Build path from path_components
+        # IMPORTANT: Color comes FIRST in the path (before make)
         path_parts = ["cars-for-sale"]
+        color = path_components.get('color', '')
         make = path_components.get('make', '')
         model = path_components.get('model', '')
         trim = path_components.get('trim', '')
 
+        if color:
+            path_parts.append(color.lower())
         if make:
             path_parts.append(make.lower())
         if model:
@@ -83,9 +87,16 @@ def adapt_structured_to_autotrader(structured: dict) -> str:
             if value:  # Skip empty values
                 params.append(f"{key}={value}")
 
-        # Add default search radius if not specified
-        if not any('searchRadius' in p for p in params):
+        # CRITICAL: If searchRadius is specified, zip is REQUIRED
+        has_search_radius = any('searchRadius' in p for p in params)
+        has_zip = any('zip=' in p for p in params)
+        if has_search_radius and not has_zip:
+            # Add default zip if searchRadius but no zip provided
+            params.append("zip=94002")  # Default to San Mateo, CA
+        elif not has_search_radius and not has_zip:
+            # If neither specified, add both with defaults
             params.append("searchRadius=500")
+            params.append("zip=94002")
 
         query_string = '&'.join(params)
         return f"{base_url}{url_path}?{query_string}"
@@ -100,8 +111,18 @@ def adapt_structured_to_autotrader(structured: dict) -> str:
     trims = structured.get('trims', [])
     trim = trims[0].lower().replace(' ', '-') if trims else ''
 
+    # Get color (for path - comes before make)
+    color = structured.get('color', '')
+    if isinstance(color, list):
+        color = color[0].lower() if color else ''
+    elif color:
+        color = color.lower()
+
     # Build base URL path
+    # IMPORTANT: Color comes FIRST in the path (before make)
     path_parts = ["cars-for-sale"]
+    if color:
+        path_parts.append(color)
     if make:
         path_parts.append(make)
     if model:
@@ -399,10 +420,18 @@ def scrape_with_camoufox(query: str, max_results: int, os_choice: str = None):
 
         logging.error(f"[AutoTrader] Page loaded successfully, extracting...")
 
+        # Check for "no results" page first
+        no_results_indicators = ['no results', 'no vehicles found', 'no exact matches', 'try your search again']
+        page_text_lower = page_text.lower()
+        if any(indicator in page_text_lower for indicator in no_results_indicators):
+            logging.error(f"[AutoTrader] No results page detected - returning empty list")
+            browser.close()
+            return []  # Empty results, NOT an error
+
         try:
             page.wait_for_selector('[data-cmp="inventoryListing"]', timeout=10000)
         except:
-            logging.error(f"[AutoTrader] No listings found or timeout")
+            logging.error(f"[AutoTrader] No listings found or timeout - may be no results or page structure changed")
 
         listing_cards = page.query_selector_all('[data-cmp="inventoryListing"]')
         logging.error(f"[AutoTrader] Found {len(listing_cards)} listings")
@@ -581,10 +610,21 @@ def main():
     try:
         result = scrape_autotrader(query, max_results)
 
-        if not result:
-            print(json.dumps({"error": f"No AutoTrader listings found for '{query}'"}))
+        # Handle different return types
+        # - None: bot detection (worker will retry with VPN)
+        # - []: no results found (valid empty response)
+        # - list with items: success
+        if result is None:
+            # Bot detection - return error dict for worker to retry
+            print(json.dumps({"error": "Bot detection - retry with VPN"}))
+            sys.stdout.flush()
+            sys.exit(1)
+        elif not result or (isinstance(result, list) and len(result) == 0):
+            # No results - return empty list (NOT an error)
+            print("[]")
             sys.stdout.flush()
         else:
+            # Success - return listings
             output = json.dumps(result, indent=2)
             print(output)
             sys.stdout.flush()
