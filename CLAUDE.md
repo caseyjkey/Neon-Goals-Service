@@ -513,6 +513,12 @@ Creates:
 
 The API will be available at `http://localhost:3001`
 
+**IMPORTANT: Dev Server Management**
+- The dev server has **hot reload enabled** - code changes auto-apply without restarting
+- **DO NOT kill/restart the dev server** if port 3001 is already in use
+- If the dev server is already running, just make your code changes - they will auto-apply
+- Restarting the server hides logs from your terminal, making debugging harder
+
 ### Worker Setup
 
 The scraper worker runs on a separate machine (gilbert):

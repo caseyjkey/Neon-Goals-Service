@@ -166,6 +166,93 @@ export class ScraperService {
   }
 
   /**
+   * Detect and reset stuck jobs (zombie jobs)
+   * Runs every 5 minutes to find jobs stuck in 'running' status for >10 minutes
+   * - attempts < 3: Reset to pending for retry
+   * - attempts >= 3: Mark as failed (permanently stuck)
+   */
+  @Cron('*/5 * * * *') // Every 5 minutes
+  async detectAndResetStuckJobs() {
+    const timeoutMinutes = 10;
+    const timeoutThreshold = new Date(Date.now() - timeoutMinutes * 60 * 1000);
+
+    // Find ALL stuck jobs (regardless of attempt count)
+    const stuckJobs = await this.prisma.scrapeJob.findMany({
+      where: {
+        status: 'running',
+        updatedAt: { lt: timeoutThreshold },
+      },
+      include: {
+        goal: {
+          select: {
+            id: true,
+            title: true,
+          },
+        },
+      },
+    });
+
+    if (stuckJobs.length === 0) {
+      return;
+    }
+
+    this.logger.warn(
+      `Found ${stuckJobs.length} stuck jobs (running >${timeoutMinutes}min)...`,
+    );
+
+    let resetCount = 0;
+    let failedCount = 0;
+
+    for (const job of stuckJobs) {
+      if (job.attempts < 3) {
+        // Reset to pending for retry
+        await this.prisma.scrapeJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'pending',
+            attempts: { increment: 1 },
+            error: `Job was stuck in 'running' status for >${timeoutMinutes} minutes (callback likely failed). Resetting to retry.`,
+            updatedAt: new Date(),
+          },
+        });
+
+        // Reset the goal's statusBadge
+        await this.prisma.itemGoalData.update({
+          where: { goalId: job.goal.id },
+          data: { statusBadge: 'pending_search' },
+        });
+
+        this.logger.warn(
+          `⚠️ Reset stuck job ${job.id} for "${job.goal.title}" (attempt ${job.attempts + 1}/3)`,
+        );
+        resetCount++;
+      } else {
+        // Permanently failed after 3 attempts
+        await this.prisma.scrapeJob.update({
+          where: { id: job.id },
+          data: {
+            status: 'failed',
+            error: `Job failed after 3 attempts. Last attempt was stuck in 'running' status for >${timeoutMinutes} minutes. Check worker connectivity.`,
+          },
+        });
+
+        // Mark goal as not found
+        await this.prisma.itemGoalData.update({
+          where: { goalId: job.goal.id },
+          data: { statusBadge: 'not_found' },
+        });
+
+        this.logger.error(
+          `❌ Permanently failed job ${job.id} for "${job.goal.title}" after 3 attempts`,
+        );
+        failedCount++;
+      }
+    }
+
+    this.logger.log(`✅ Reset ${resetCount} stuck jobs to pending, ${failedCount} marked as failed`);
+  }
+
+  /**
    * Main method to acquire candidates for a goal
    */
   async acquireCandidatesForGoal(goal: any): Promise<ProductCandidate[]> {
@@ -1143,21 +1230,23 @@ export class ScraperService {
       existingUrls.forEach((url: string) => this.logger.log(`  - ${url.substring(0, 100)}...`));
     }
 
-    // DEBUG: Check AutoTrader specifically before filtering
-    const autoTraderBeforeFilter = data.filter((item: any) =>
-      item.retailer === 'AutoTrader' || item.source === 'autotrader'
-    );
-    this.logger.log(`AutoTrader BEFORE filter: ${autoTraderBeforeFilter.length} listings`);
-    autoTraderBeforeFilter.forEach((listing: any) => {
-      const urlPreview = listing.url ? listing.url.substring(0, 80) : 'NO URL';
-      const isFiltered = excludedUrls.has(listing.url);
-      this.logger.log(`  - ${listing.name} | URL: ${urlPreview}... | FILTERED: ${isFiltered}`);
-      if (isFiltered) {
-        // Find which list it's in
-        if (deniedUrls.has(listing.url)) this.logger.log(`    ^ In DENIED list`);
-        if (shortlistedUrls.has(listing.url)) this.logger.log(`    ^ In SHORTLISTED list`);
-        if (existingUrls.has(listing.url)) this.logger.log(`    ^ In EXISTING candidates`);
-      }
+    // DEBUG: Check listings BEFORE filtering by retailer
+    const beforeFilterByRetailer: Record<string, any[]> = {};
+    data.forEach((item: any) => {
+      const retailer = item.retailer || item.source || 'Unknown';
+      if (!beforeFilterByRetailer[retailer]) beforeFilterByRetailer[retailer] = [];
+      beforeFilterByRetailer[retailer].push(item);
+    });
+
+    this.logger.log(`Listings BEFORE filter by retailer:`);
+    Object.entries(beforeFilterByRetailer).forEach(([retailer, items]) => {
+      this.logger.log(`  ${retailer}: ${items.length} listings`);
+      items.forEach((listing: any) => {
+        const urlPreview = listing.url ? listing.url.substring(0, 80) : 'NO URL';
+        const isFiltered = !listing.url || excludedUrls.has(listing.url);
+        const filterReason = !listing.url ? 'NO URL' : excludedUrls.has(listing.url) ? 'IN EXCLUDED' : 'none';
+        this.logger.log(`    - ${listing.name} | URL: ${urlPreview}... | FILTERED: ${isFiltered} (${filterReason})`);
+      });
     });
 
     // Filter and convert data
@@ -1178,18 +1267,19 @@ export class ScraperService {
         features: item.mileage ? [`${item.mileage} mi`] : [],
       }));
 
-    // DEBUG: Check AutoTrader specifically after filtering
-    const autoTraderAfterFilter = candidates.filter((item: any) =>
-      item.retailer === 'AutoTrader'
-    );
-    this.logger.log(`AutoTrader AFTER filter: ${autoTraderAfterFilter.length} listings (filtered out ${autoTraderBeforeFilter.length - autoTraderAfterFilter.length})`);
-
     // DEBUG: Log final retailer breakdown
     const finalRetailerCounts: Record<string, number> = {};
     candidates.forEach((item: any) => {
       finalRetailerCounts[item.retailer] = (finalRetailerCounts[item.retailer] || 0) + 1;
     });
     this.logger.log(`Job ${jobId} storing ${candidates.length} candidates by retailer: ${JSON.stringify(finalRetailerCounts)}`);
+
+    // Log what was filtered
+    const totalReceived = data.length;
+    const totalFiltered = totalReceived - candidates.length;
+    if (totalFiltered > 0) {
+      this.logger.warn(`⚠️ Filtered out ${totalFiltered} listings (${totalReceived} received → ${candidates.length} stored)`);
+    }
 
     // Update goal with candidates
     const statusBadge = candidates.length > 0 ? 'in_stock' : 'not_found';

@@ -44,26 +44,42 @@ export class PlaidService {
    * Create a link token for Plaid Link frontend
    */
   async createLinkToken(userId: string): Promise<LinkTokenResponse> {
-    this.logger.log(`Creating link token for user: ${userId}`);
+    this.logger.log(`Creating link token for user: ${userId} (type: ${typeof userId}, length: ${userId?.length})`);
+
+    if (!userId) {
+      throw new BadRequestException('User ID is required for link token creation');
+    }
 
     const request = {
       user: {
         client_user_id: userId,
       },
       client_name: 'Neon Goals',
-      products: ['auth', 'transactions'] as any[],
+      products: ['transactions'] as any[],
       country_codes: ['US'] as any,
       language: 'en',
       redirect_uri: this.configService.get<string>('PLAID_REDIRECT_URI'),
     };
 
+    this.logger.log(`Link token request: ${JSON.stringify({ ...request, user: { client_user_id: userId.substring(0, 8) + '...' } })}`);
+
     try {
       const response = await this.plaidClient.linkTokenCreate(request);
       this.logger.log(`Link token created for user: ${userId}`);
       return response.data;
-    } catch (error) {
-      this.logger.error('Error creating link token:', error);
-      throw new BadRequestException('Failed to create link token');
+    } catch (error: any) {
+      // Log detailed Plaid error
+      const plaidError = error?.response?.data;
+      this.logger.error('Plaid link token creation failed:', {
+        status: error?.response?.status,
+        errorCode: plaidError?.error_code,
+        errorMessage: plaidError?.error_message,
+        requestType: plaidError?.request_type,
+        fullError: plaidError || error?.message || error,
+      });
+      throw new BadRequestException(
+        plaidError?.error_message || 'Failed to create link token',
+      );
     }
   }
 
