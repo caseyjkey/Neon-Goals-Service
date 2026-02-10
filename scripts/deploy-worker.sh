@@ -1,18 +1,22 @@
 #!/bin/bash
+# Deploy worker to gilbert
 set -e
 
-echo "🚀 Deploying scraper worker to Gilbert..."
+echo "Deploying worker to gilbert..."
 
-# 1. Update the code on the remote machine
-echo "📥 Pulling latest code..."
-ssh gilbert "cd ~/Development/Neon-Goals-Service && git pull"
+ssh gilbert << 'ENDSSH'
+cd /home/alpha/Development/Neon-Goals-Service
+echo "Pulling latest code..."
+git pull
 
-# 2. Restart the worker service to apply changes
-echo "🔄 Restarting scraper-worker service..."
-ssh gilbert "sudo systemctl restart scraper-worker"
+echo "Restarting worker service..."
+sudo systemctl restart scraper-worker.service
 
-# 3. Check service status
-echo "✅ Checking service status..."
-ssh gilbert "sudo systemctl status scraper-worker --no-pager | head -n 10"
+echo "Waiting for service to start..."
+sleep 2
 
-echo "✅ Repo updated and Scraper Worker restarted on Gilbert."
+echo "Worker status:"
+sudo systemctl status scraper-worker.service --no-pager | head -15
+ENDSSH
+
+echo "Worker deployed successfully!"
