@@ -307,13 +307,19 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     retailers = {}
 
     # AutoTrader - URL string
-    # IMPORTANT: Color comes FIRST in the path (before make)
+    # IMPORTANT: Format is /cars-for-sale/{color}/{make}/{model}/{trim}
+    # Color comes FIRST in the path, then make, then model, then trim
     make = makes[0].lower() if makes else 'all'
     model = models[0].lower().replace(' ', '-') if models else 'all'
-    autotrader_path = f"{make}/{model}"
+    autotrader_parts = []
     if color:
-        autotrader_path = f"{color}/{autotrader_path}"
-    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{autotrader_path}?searchRadius=500&zip=94002"
+        autotrader_parts.append(color.lower())
+    autotrader_parts.append(make)
+    autotrader_parts.append(model)
+    if trims:
+        # Add trim to path (slugified: lowercase with hyphens)
+        autotrader_parts.append(trims[0].lower().replace(' ', '-'))
+    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{'/'.join(autotrader_parts)}?searchRadius=500&zip=94002"
     if year_min:
         autotrader_url += f"&startYear={year_min}"
     if year_max:
