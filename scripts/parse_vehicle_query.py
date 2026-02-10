@@ -159,6 +159,14 @@ Return ONLY JSON:
 async def parse_with_llm(query: str, filters: Dict[str, dict]) -> Dict[str, Any]:
     """Parse query using LLM with retailer-specific filter contexts."""
 
+    # Check if openai module is available
+    if AsyncOpenAI is None:
+        return {
+            "error": "OpenAI module not installed. Run: pip install openai",
+            "query": query,
+            "retailers": {}
+        }
+
     system_prompt = build_system_prompt(filters)
     user_prompt = f"""Map this vehicle search query to retailer-specific filters for all 5 retailers:
 
