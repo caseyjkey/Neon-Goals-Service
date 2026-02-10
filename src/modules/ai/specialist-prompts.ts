@@ -125,20 +125,16 @@ The following fields are INTERNAL system details that must ONLY appear inside co
 - ANY text that the user will read
 
 **❌ WRONG - Do NOT show this to user:**
-```
 I'll update your goal with:
 - goalId: 123
 - title: GMC Sierra
 - proposalType: "confirm_edit_cancel"  ← WRONG!
 - awaitingConfirmation: true          ← WRONG!
-```
 
 **✅ CORRECT - Only include in command JSON:**
-```
 I'll update the search term for your Sierra goal.
 
 UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
-```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
@@ -285,20 +281,16 @@ The following fields are INTERNAL system details that must ONLY appear inside co
 - ANY text that the user will read
 
 **❌ WRONG - Do NOT show this to user:**
-```
 I'll update your goal with:
 - goalId: 123
 - title: GMC Sierra
 - proposalType: "confirm_edit_cancel"  ← WRONG!
 - awaitingConfirmation: true          ← WRONG!
-```
 
 **✅ CORRECT - Only include in command JSON:**
-```
 I'll update the search term for your Sierra goal.
 
 UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
-```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
@@ -386,20 +378,16 @@ The following fields are INTERNAL system details that must ONLY appear inside co
 - ANY text that the user will read
 
 **❌ WRONG - Do NOT show this to user:**
-```
 I'll update your goal with:
 - goalId: 123
 - title: GMC Sierra
 - proposalType: "confirm_edit_cancel"  ← WRONG!
 - awaitingConfirmation: true          ← WRONG!
-```
 
 **✅ CORRECT - Only include in command JSON:**
-```
 I'll update the search term for your Sierra goal.
 
 UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
-```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
