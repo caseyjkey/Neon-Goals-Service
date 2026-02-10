@@ -236,10 +236,12 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     # Extract basic info with regex
     makes = []
     models = []
+    trims = []
     year_min = None
     year_max = None
     max_price = None
     color = None
+    drivetrain = None
 
     # Year extraction
     year_matches = re.findall(r'(20\d{2})', query)
@@ -264,6 +266,14 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
             color = c.capitalize()
             break
 
+    # Drivetrain extraction
+    if '4wd' in query_lower or '4 wd' in query_lower or 'four wheel drive' in query_lower or '4x4' in query_lower:
+        drivetrain = 'FOUR_WHEEL_DRIVE'  # For CarGurus
+    elif 'awd' in query_lower or 'all wheel drive' in query_lower:
+        drivetrain = 'ALL_WHEEL_DRIVE'
+    elif '2wd' in query_lower or '2 wd' in query_lower or '4x2' in query_lower:
+        drivetrain = 'FOUR_BY_TWO'
+
     # Common makes
     common_makes = {
         'gmc': 'GMC', 'ford': 'Ford', 'chevrolet': 'Chevrolet', 'chevy': 'Chevrolet',
@@ -272,6 +282,18 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     for make_lower, make_proper in common_makes.items():
         if make_lower in query_lower:
             makes.append(make_proper)
+
+    # Trim extraction (common trim levels)
+    gmc_trims = ['Denali Ultimate', 'Denali', 'AT4', 'SLE', 'SLT', 'Pro', 'Elevation']
+    ford_trims = ['Platinum', 'King Ranch', 'Lariat', 'Limited', 'XLT', 'XL', 'Tremor', 'Raptor']
+    chevy_trims = ['High Country', 'LTZ', 'LT', 'Custom', 'WT', 'Trail Boss', 'Z71']
+    ram_trims = ['Limited', 'Longhorn', 'Laramie', 'Big Horn', 'Rebel', 'Tradesman', 'TRX']
+
+    all_trims = gmc_trims + ford_trims + chevy_trims + ram_trims
+    for trim in all_trims:
+        if trim.lower() in query_lower:
+            trims.append(trim)
+            break  # Only capture first trim found
 
     # Common models
     if 'sierra' in query_lower:
@@ -312,6 +334,14 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
         retailers['cargurus']['yearMin'] = str(year_min)
     if year_max:
         retailers['cargurus']['yearMax'] = str(year_max)
+    if trims:
+        retailers['cargurus']['trim'] = trims[0]
+    if color:
+        retailers['cargurus']['exteriorColor'] = color
+    if drivetrain:
+        retailers['cargurus']['drivetrain'] = drivetrain
+    if max_price:
+        retailers['cargurus']['maxPrice'] = max_price
 
     # CarMax - dict format with arrays
     retailers['carmax'] = {}
@@ -319,10 +349,20 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
         retailers['carmax']['makes'] = makes
     if models:
         retailers['carmax']['models'] = models
+    if trims:
+        retailers['carmax']['trims'] = trims
+    if color:
+        retailers['carmax']['colors'] = [color]
     if year_min:
         retailers['carmax']['yearMin'] = str(year_min)
     if year_max:
         retailers['carmax']['yearMax'] = str(year_max)
+    if drivetrain:
+        # Convert to CarMax format
+        carmax_drivetrain = drivetrain.replace('_', ' ').title()
+        retailers['carmax']['drivetrain'] = carmax_drivetrain
+    if max_price:
+        retailers['carmax']['maxPrice'] = max_price
 
     # Carvana - dict format (NO series parameter)
     retailers['carvana'] = {}
@@ -331,8 +371,15 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     if models:
         # Use model as-is (contains the series designation like "Sierra 3500")
         retailers['carvana']['model'] = models[0]
+    if trims:
+        retailers['carvana']['trims'] = trims
     if year_min:
         retailers['carvana']['year'] = year_min
+    if drivetrain:
+        carvana_drivetrain = drivetrain.replace('_', ' ')
+        retailers['carvana']['drivetrain'] = carvana_drivetrain
+    if color:
+        retailers['carvana']['exteriorColor'] = color
 
     # TrueCar - dict format
     retailers['truecar'] = {}
@@ -340,10 +387,17 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
         retailers['truecar']['make'] = makes[0]
     if models:
         retailers['truecar']['model'] = models[0]
+    if trims:
+        retailers['truecar']['trims'] = trims
     if year_min:
         retailers['truecar']['startYear'] = str(year_min)
     if year_max:
         retailers['truecar']['endYear'] = str(year_max)
+    if max_price:
+        retailers['truecar']['budget'] = max_price
+    if drivetrain:
+        truecar_drivetrain = drivetrain.replace('_', ' ').replace('Four Wheel Drive', '4WD').replace('All Wheel Drive', 'AWD')
+        retailers['truecar']['drivetrain'] = truecar_drivetrain
 
     return {
         "query": query,
