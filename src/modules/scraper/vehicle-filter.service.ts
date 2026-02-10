@@ -13,7 +13,7 @@ const execPromise = promisify(exec);
 export class VehicleFilterService {
   private readonly logger = new Logger(VehicleFilterService.name);
   private readonly pythonPath = 'python3';
-  private readonly scriptPath = '/home/trill/Development/neon-goals-service/scripts/parse_vehicle_query.py';
+  private readonly scriptPath = `${process.cwd()}/scripts/parse_vehicle_query.py`;
 
   constructor(private configService: ConfigService) {}
 
