@@ -64,12 +64,13 @@ async def poll_for_jobs():
                                 # Build callback URL (worker calls back to backend)
                                 callback_url = f"{BACKEND_API_URL}/api/scrapers/callback"
 
-                                # Run all scrapers in background
+                                # Run all scrapers in background (sync function, run in thread pool)
                                 asyncio.create_task(
-                                    run_all_scrapers_and_callback(
+                                    asyncio.to_thread(
+                                        run_all_scrapers_and_callback,
                                         query=search_term,
                                         vehicle_filters={"retailers": retailer_filters} if retailer_filters else None,
-                                        job_id=str(job_id),
+                                        job_id=job_id,
                                         callback_url=callback_url,
                                         use_retailer_filters=bool(retailer_filters)
                                     )
