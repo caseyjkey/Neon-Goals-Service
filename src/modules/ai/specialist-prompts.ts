@@ -113,12 +113,32 @@ Does this look good?"
 
 ## Structured Commands
 
-**CRITICAL: Internal Implementation Details**
-The following fields are INTERNAL system details that should ONLY appear inside command JSON:
+**CRITICAL: Internal Implementation Details - NEVER SHOW TO USERS**
+The following fields are INTERNAL system details that must ONLY appear inside command JSON:
 - \`proposalType\` - Internal proposal type for UI rendering
 - \`awaitingConfirmation\` - Internal flag for confirmation flow
 
-**NEVER mention, explain, or list these fields in your conversational responses to users.** They are for the command JSON only. Users should never see or hear about these internal implementation details.
+**ABSOLUTELY NEVER include these fields in:**
+- Your conversational message to the user
+- Goal summaries or previews
+- "Here's what I'll update:" lists
+- ANY text that the user will read
+
+**❌ WRONG - Do NOT show this to user:**
+```
+I'll update your goal with:
+- goalId: 123
+- title: GMC Sierra
+- proposalType: "confirm_edit_cancel"  ← WRONG!
+- awaitingConfirmation: true          ← WRONG!
+```
+
+**✅ CORRECT - Only include in command JSON:**
+```
+I'll update the search term for your Sierra goal.
+
+UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
+```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
@@ -253,12 +273,32 @@ Use this data to provide **specific, personalized insights**:
 
 ## Structured Commands
 
-**CRITICAL: Internal Implementation Details**
-The following fields are INTERNAL system details that should ONLY appear inside command JSON:
+**CRITICAL: Internal Implementation Details - NEVER SHOW TO USERS**
+The following fields are INTERNAL system details that must ONLY appear inside command JSON:
 - \`proposalType\` - Internal proposal type for UI rendering
 - \`awaitingConfirmation\` - Internal flag for confirmation flow
 
-**NEVER mention, explain, or list these fields in your conversational responses to users.** They are for the command JSON only. Users should never see or hear about these internal implementation details.
+**ABSOLUTELY NEVER include these fields in:**
+- Your conversational message to the user
+- Goal summaries or previews
+- "Here's what I'll update:" lists
+- ANY text that the user will read
+
+**❌ WRONG - Do NOT show this to user:**
+```
+I'll update your goal with:
+- goalId: 123
+- title: GMC Sierra
+- proposalType: "confirm_edit_cancel"  ← WRONG!
+- awaitingConfirmation: true          ← WRONG!
+```
+
+**✅ CORRECT - Only include in command JSON:**
+```
+I'll update the search term for your Sierra goal.
+
+UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
+```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
@@ -334,12 +374,32 @@ You have access to the user's action goals, including:
 
 ## Structured Commands
 
-**CRITICAL: Internal Implementation Details**
-The following fields are INTERNAL system details that should ONLY appear inside command JSON:
+**CRITICAL: Internal Implementation Details - NEVER SHOW TO USERS**
+The following fields are INTERNAL system details that must ONLY appear inside command JSON:
 - \`proposalType\` - Internal proposal type for UI rendering
 - \`awaitingConfirmation\` - Internal flag for confirmation flow
 
-**NEVER mention, explain, or list these fields in your conversational responses to users.** They are for the command JSON only. Users should never see or hear about these internal implementation details.
+**ABSOLUTELY NEVER include these fields in:**
+- Your conversational message to the user
+- Goal summaries or previews
+- "Here's what I'll update:" lists
+- ANY text that the user will read
+
+**❌ WRONG - Do NOT show this to user:**
+```
+I'll update your goal with:
+- goalId: 123
+- title: GMC Sierra
+- proposalType: "confirm_edit_cancel"  ← WRONG!
+- awaitingConfirmation: true          ← WRONG!
+```
+
+**✅ CORRECT - Only include in command JSON:**
+```
+I'll update the search term for your Sierra goal.
+
+UPDATE_TITLE: {"goalId":"123","title":"GMC Sierra","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
+```
 
 When the user asks you to modify goals, you MUST output commands in this EXACT format:
 
