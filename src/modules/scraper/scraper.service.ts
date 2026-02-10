@@ -3,6 +3,7 @@ import { Cron } from '@nestjs/schedule';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { PrismaService } from '../../config/prisma.service';
+import { VehicleFilterService } from './vehicle-filter.service';
 import { GoalType } from '@prisma/client';
 
 const { chromium } = require('playwright-extra');
@@ -34,6 +35,7 @@ export class ScraperService {
   constructor(
     private prisma: PrismaService,
     private httpService: HttpService,
+    private vehicleFilterService: VehicleFilterService,
   ) {}
 
   /**
