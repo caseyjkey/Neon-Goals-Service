@@ -95,10 +95,11 @@ Each retailer's scraper expects a different input format. Generate the exact for
 1. **autotrader** - Generate a URL string directly:
    - URL format: https://www.autotrader.com/cars-for-sale/{{color}}/{{make}}/{{model}}/{{trim}}?{{params}}
    - IMPORTANT: Color goes FIRST in the path (before make), not as a query parameter
-   - Example with color: https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500hd/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002&maxPrice=100000
-   - Example without color: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500hd/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
+   - Example with color: https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002&maxPrice=100000
+   - Example without color: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
    - CRITICAL: zip and searchRadius are REQUIRED - always include both from the query
-   - Make/model/trim should be lowercase with hyphens (e.g., sierra-3500hd, denali-ultimate)
+   - Make/model/trim should be lowercase with hyphens (e.g., sierra-3500, f-150, denali-ultimate)
+   - CRITICAL: Strip "HD" suffix from model names for AutoTrader (sierra-3500hd → sierra-3500, silverado-3500hd → silverado-3500)
    - Color should be lowercase (black, white, gray, etc.) - omit if not specified
 
 2. **cargurus** - Generate a dict with these exact keys:
@@ -161,7 +162,7 @@ Return ONLY JSON:
 {{
   "query": "2023-2024 GMC Sierra 3500HD Denali Ultimate black within 500 miles of 94002 under 100000",
   "retailers": {{
-    "autotrader": "https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500hd/denali-ultimate?searchRadius=500&zip=94002&startYear=2023&endYear=2024&maxPrice=100000",
+    "autotrader": "https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500/denali-ultimate?searchRadius=500&zip=94002&startYear=2023&endYear=2024&maxPrice=100000",
     "cargurus": {{"make": "GMC", "model": "Sierra 3500HD", "zip": "94002", "distance": 500, "trim": "Denali Ultimate", "yearMin": "2023", "yearMax": "2024", "maxPrice": 100000, "exteriorColor": "Black"}},
     "carmax": {{"makes": ["GMC"], "models": ["Sierra 3500"], "trims": ["Denali Ultimate"], "yearMin": "2023", "yearMax": "2024", "maxPrice": 100000, "colors": ["Black"]}},
     "carvana": {{"make": "GMC", "model": "Sierra 3500", "trims": ["Denali Ultimate"], "year": 2023, "exteriorColor": "Black"}},
@@ -174,7 +175,7 @@ Return ONLY JSON:
 - Carvana: Drop "HD" suffix, use SPACES → "Sierra 3500" (NOT "Sierra-3500" or "Sierra 3500HD")
 - TrueCar: Keep FULL model name → "Sierra 3500HD"
 - CarGurus: Keep FULL model name → "Sierra 3500HD"
-- AutoTrader: Lowercase with hyphens → "sierra-3500hd"
+- AutoTrader: Lowercase with hyphens, drop "HD" → "sierra-3500" (NOT "sierra-3500hd")
 """
 
 
