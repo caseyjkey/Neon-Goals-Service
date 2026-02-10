@@ -42,7 +42,7 @@ async def poll_for_jobs():
                 timeout=10
             )
 
-            if response.status_code == 200:
+            if response.status_code in (200, 201):
                 data = response.json()
                 job = data.get("job")
 
