@@ -411,7 +411,12 @@ def build_search_url(
         # URL encode the value (especially for colors like "BLACK" and trim with spaces)
         import urllib.parse
         if v:
-            query_parts.append(f"{k}={urllib.parse.quote_plus(str(v))}")
+            # Use quote with safe='+' to preserve + signs in trim names
+            # quote() encodes spaces as %20, so we manually convert to +
+            encoded = urllib.parse.quote(str(v), safe='+')
+            # Then convert %20 back to + for CarGurus compatibility
+            encoded = encoded.replace('%20', '+')
+            query_parts.append(f"{k}={encoded}")
     return f"{base_url}?{'&'.join(query_parts)}"
 
 

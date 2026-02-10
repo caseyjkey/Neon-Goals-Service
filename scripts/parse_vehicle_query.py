@@ -84,27 +84,40 @@ Each retailer's scraper expects a different input format. Generate the exact for
 
 {''.join(retailer_context)}
 
+**LOCATION EXTRACTION:**
+- Extract zip code and search radius from the query (e.g., "within 500 miles of 94002")
+- Pass these to retailers that support location filtering (AutoTrader, CarGurus, TrueCar)
+- If no zip code in query, default to 94002
+- If no radius in query, default to 500 miles
+
 **SCRAPER INPUT FORMATS (generate exactly these formats):**
 
 1. **autotrader** - Generate a URL string directly:
    - URL format: https://www.autotrader.com/cars-for-sale/{{color}}/{{make}}/{{model}}/{{trim}}?{{params}}
    - IMPORTANT: Color goes FIRST in the path (before make), not as a query parameter
-   - Example with color: https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
-   - Example without color: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
-   - CRITICAL: zip is REQUIRED when using searchRadius - always include both
-   - Make/model/trim should be lowercase with hyphens
+   - Example with color: https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500hd/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002&maxPrice=100000
+   - Example without color: https://www.autotrader.com/cars-for-sale/gmc/sierra-3500hd/denali-ultimate?startYear=2023&endYear=2024&searchRadius=500&zip=94002
+   - CRITICAL: zip and searchRadius are REQUIRED - always include both from the query
+   - Make/model/trim should be lowercase with hyphens (e.g., sierra-3500hd, denali-ultimate)
    - Color should be lowercase (black, white, gray, etc.) - omit if not specified
 
 2. **cargurus** - Generate a dict with these exact keys:
-   {{make, model, zip, trim, yearMin, yearMax, minPrice, maxPrice, exteriorColor, interiorColor, drivetrain, fuelType, transmission, mileageMax}}
+   {{make, model, zip, distance, trim, yearMin, yearMax, minPrice, maxPrice, exteriorColor, interiorColor, drivetrain, fuelType, transmission, mileageMax}}
+   - zip: ZIP code from query (e.g., "94002")
+   - distance: Search radius in miles from query (use the SAME radius the user specified)
    - drivetrain values: "FOUR_WHEEL_DRIVE", "ALL_WHEEL_DRIVE", "FOUR_BY_TWO"
    - fuelType values: "GASOLINE", "DIESEL", "FLEX_FUEL_VEHICLE", "ELECTRIC", "HYBRID"
    - transmission values: "AUTOMATIC", "MANUAL"
 
 3. **carmax** - Generate a dict with these exact keys:
-   {{makes, models, trims, colors, bodyType, fuelType, drivetrain, transmission, minPrice, maxPrice, carSize, doors, cylinders, features}}
+   {{makes, models, trims, colors, bodyType, fuelType, drivetrain, transmission, minPrice, maxPrice, yearMin, yearMax, carSize, doors, cylinders, features}}
    - makes, models, trims, colors, features are arrays
    - Other values are strings
+   - IMPORTANT MODEL NORMALIZATION: CarMax uses shorter model names without "HD" suffix:
+     - "Sierra 3500HD" → models: ["Sierra 3500"]
+     - "Sierra 2500HD" → models: ["Sierra 2500"]
+     - "Silverado 3500HD" → models: ["Silverado 3500"]
+     - Always drop the "HD" suffix for CarMax models
 
 4. **carvana** - Generate a dict with these exact keys:
    {{make, model, trims, year, drivetrain, exteriorColor, interiorColor, transmission, fuelType, features}}
@@ -118,10 +131,12 @@ Each retailer's scraper expects a different input format. Generate the exact for
    - IMPORTANT: The "HD" suffix appears in vehicle titles but is NOT in the filter model name
 
 5. **truecar** - Generate a dict with these exact keys:
-   {{make, model, trims, startYear, endYear, budget, bodyStyle, drivetrain, fuelType}}
+   {{make, model, trims, startYear, endYear, budget, postalCode, searchRadius, bodyStyle, drivetrain, fuelType}}
    - make, model are strings - USE FULL MODEL NAME (e.g., "Sierra 3500HD" not "Sierra 3500")
    - trims is an array
    - budget = maxPrice
+   - postalCode: ZIP code from the query (e.g., "94002")
+   - searchRadius: Search radius in miles from the query (e.g., 500)
    - CRITICAL: For truck models, include the full model name with suffix (3500HD, 2500HD, 1500)
 
 **CRITICAL - EXACT VALUE MATCHING:**
@@ -144,15 +159,22 @@ Each retailer's scraper expects a different input format. Generate the exact for
 
 Return ONLY JSON:
 {{
-  "query": "original query",
+  "query": "2023-2024 GMC Sierra 3500HD Denali Ultimate black within 500 miles of 94002 under 100000",
   "retailers": {{
-    "autotrader": "https://www.autotrader.com/...",
-    "cargurus": {{"make": "GMC", "model": "Sierra 3500", ...}},
-    "carmax": {{"makes": ["GMC"], "models": ["Sierra 3500"], ...}},
-    "carvana": {{"make": "GMC", "model": "Sierra 3500", ...}},  // Note: SPACES in model, NO HD suffix
-    "truecar": {{"make": "GMC", "model": "Sierra 3500HD", ...}}  // Note: Full model name with HD suffix
+    "autotrader": "https://www.autotrader.com/cars-for-sale/black/gmc/sierra-3500hd/denali-ultimate?searchRadius=500&zip=94002&startYear=2023&endYear=2024&maxPrice=100000",
+    "cargurus": {{"make": "GMC", "model": "Sierra 3500HD", "zip": "94002", "distance": 500, "trim": "Denali Ultimate", "yearMin": "2023", "yearMax": "2024", "maxPrice": 100000, "exteriorColor": "Black"}},
+    "carmax": {{"makes": ["GMC"], "models": ["Sierra 3500"], "trims": ["Denali Ultimate"], "yearMin": "2023", "yearMax": "2024", "maxPrice": 100000, "colors": ["Black"]}},
+    "carvana": {{"make": "GMC", "model": "Sierra 3500", "trims": ["Denali Ultimate"], "year": 2023, "exteriorColor": "Black"}},
+    "truecar": {{"make": "GMC", "model": "Sierra 3500HD", "trims": ["Denali Ultimate"], "startYear": "2023", "endYear": "2024", "budget": 100000, "postalCode": "94002", "searchRadius": 500}}
   }}
 }}
+
+**NOTES on model naming per retailer:**
+- CarMax: Drop "HD" suffix → "Sierra 3500" (NOT "Sierra 3500HD")
+- Carvana: Drop "HD" suffix, use SPACES → "Sierra 3500" (NOT "Sierra-3500" or "Sierra 3500HD")
+- TrueCar: Keep FULL model name → "Sierra 3500HD"
+- CarGurus: Keep FULL model name → "Sierra 3500HD"
+- AutoTrader: Lowercase with hyphens → "sierra-3500hd"
 """
 
 
@@ -215,7 +237,7 @@ Provide the complete filter mapping for all retailers."""
             max_tokens=3000
         )
 
-        content = response.choices[0].message.content.strip()
+        content = (response.choices[0].message.content or "").strip()
 
         # Remove markdown code blocks if present
         if content.startswith('```'):
@@ -250,6 +272,29 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     max_price = None
     color = None
     drivetrain = None
+    zip_code = None
+    search_radius = None
+
+    # Location extraction - "within X miles of ZIPCODE" or "near ZIPCODE"
+    radius_match = re.search(r'within\s+(\d+)\s+miles?\s+of\s+(\d{5})', query_lower)
+    if radius_match:
+        search_radius = int(radius_match.group(1))
+        zip_code = radius_match.group(2)
+    else:
+        zip_match = re.search(r'(?:near|around|zip|of)\s+(\d{5})', query_lower)
+        if zip_match:
+            zip_code = zip_match.group(1)
+        # Standalone zip code at end of query
+        if not zip_code:
+            zip_standalone = re.search(r'\b(\d{5})\b', query)
+            if zip_standalone:
+                zip_code = zip_standalone.group(1)
+
+    # Defaults
+    if not zip_code:
+        zip_code = '94002'
+    if not search_radius:
+        search_radius = 500
 
     # Year extraction
     year_matches = re.findall(r'(20\d{2})', query)
@@ -327,7 +372,7 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     if trims:
         # Add trim to path (slugified: lowercase with hyphens)
         autotrader_parts.append(trims[0].lower().replace(' ', '-'))
-    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{'/'.join(autotrader_parts)}?searchRadius=500&zip=94002"
+    autotrader_url = f"https://www.autotrader.com/cars-for-sale/{'/'.join(autotrader_parts)}?searchRadius={search_radius}&zip={zip_code}"
     if year_min:
         autotrader_url += f"&startYear={year_min}"
     if year_max:
@@ -342,8 +387,8 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
         retailers['cargurus']['make'] = makes[0]
     if models:
         retailers['cargurus']['model'] = models[0]
-    retailers['cargurus']['zip'] = '94002'
-    retailers['cargurus']['distance'] = 200
+    retailers['cargurus']['zip'] = zip_code
+    retailers['cargurus']['distance'] = search_radius
     if year_min:
         retailers['cargurus']['yearMin'] = str(year_min)
     if year_max:
@@ -412,8 +457,8 @@ def parse_with_patterns_fallback(query: str, filters: Dict[str, dict]) -> Dict[s
     if drivetrain:
         truecar_drivetrain = drivetrain.replace('_', ' ').replace('Four Wheel Drive', '4WD').replace('All Wheel Drive', 'AWD')
         retailers['truecar']['drivetrain'] = truecar_drivetrain
-    retailers['truecar']['postalCode'] = '94002'
-    retailers['truecar']['searchRadius'] = 500
+    retailers['truecar']['postalCode'] = zip_code
+    retailers['truecar']['searchRadius'] = search_radius
 
     return {
         "query": query,
