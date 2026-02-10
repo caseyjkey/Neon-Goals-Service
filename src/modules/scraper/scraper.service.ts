@@ -1127,7 +1127,7 @@ export class ScraperService {
       throw new Error(`Job not found: ${goalId}`);
     }
 
-    const workerUrl = 'http://100.91.29.119:5000';
+    const workerUrl = 'http://gilbert:5000';
     const query = job.goal.itemData?.searchTerm || job.goal.title;
     const vehicleFilters = job.goal.itemData?.searchFilters || null;
     let retailerFilters = job.goal.itemData?.retailerFilters || null;
