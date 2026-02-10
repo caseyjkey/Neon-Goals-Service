@@ -335,7 +335,7 @@ async def trigger_scraper(
 
     # Build callback URL from origin IP
     origin_ip = request.client.host
-    callback_url = f"http://{origin_ip}:3001/scrapers/callback"
+    callback_url = f"http://{origin_ip}:3001/api/scrapers/callback"
 
     logger.info(f"Dispatching scraper: {scraper_name} for job {job_id}")
     logger.info(f"Query: {query}")
@@ -389,7 +389,7 @@ async def trigger_all_scrapers(
 
     # Build callback URL from origin IP
     origin_ip = request.client.host
-    callback_url = f"http://{origin_ip}:3001/scrapers/callback"
+    callback_url = f"http://{origin_ip}:3001/api/scrapers/callback"
 
     logger.info(f"Dispatching ALL scrapers for job {job_id}")
     logger.info(f"Query: {query}")
