@@ -15,6 +15,30 @@ export class ScraperController {
 
   constructor(private scraperService: ScraperService) {}
 
+  /**
+   * Poll endpoint for worker to pull pending jobs
+   * Worker polls this endpoint instead of backend pushing to worker
+   * This avoids Tailscale TCP-over-DERP issues
+   */
+  @Post('poll')
+  async pollPendingJobs() {
+    this.logger.log('Worker polling for pending jobs...');
+    const job = await this.scraperService.getNextPendingJob();
+    if (!job) {
+      return { job: null };
+    }
+    this.logger.log(`Found pending job ${job.id} for goal ${job.goalId}`);
+    return {
+      job: {
+        id: job.id,
+        goalId: job.goalId,
+        searchTerm: job.goal?.itemData?.searchTerm || job.goal?.title,
+        retailerFilters: job.goal?.itemData?.retailerFilters || null,
+        category: job.goal?.itemData?.category || 'general',
+      }
+    };
+  }
+
   @Post('callback')
   async handleCallback(@Body() callbackData: CallbackData) {
     this.logger.log(`Received callback for job ${callbackData.jobId}: ${callbackData.status}`);

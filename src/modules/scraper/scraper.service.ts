@@ -77,8 +77,46 @@ export class ScraperService {
   }
 
   /**
+   * Get the next pending job for worker polling
+   * Returns job with goal data and marks it as 'running'
+   */
+  async getNextPendingJob() {
+    const job = await this.prisma.scrapeJob.findFirst({
+      where: {
+        status: 'pending',
+        attempts: { lt: 3 },
+      },
+      include: {
+        goal: {
+          include: {
+            itemData: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    if (!job) {
+      return null;
+    }
+
+    // Mark as running to prevent double-processing
+    await this.prisma.scrapeJob.update({
+      where: { id: job.id },
+      data: { status: 'running' },
+    });
+
+    return job;
+  }
+
+  /**
    * Background job processor - runs every 2 minutes
-   * Dispatches jobs to remote worker (Gilbert) for vehicle category only
+   * Generates retailerFilters for pending jobs (worker polls for actual dispatch)
+   *
+   * NOTE: Worker now polls for jobs via /api/scrapers/poll endpoint
+   * This cron job only prepares jobs with retailerFilters, doesn't dispatch
    */
   @Cron('*/2 * * * *')
   async processPendingJobs() {
@@ -101,23 +139,21 @@ export class ScraperService {
       return;
     }
 
-    this.logger.log(`Processing ${jobs.length} pending scrape jobs...`);
+    this.logger.log(`Checking ${jobs.length} pending scrape jobs for retailerFilters...`);
 
     for (const job of jobs) {
       try {
-        // Only support vehicle category - other scrapers not yet implemented
         const category = job.goal.itemData?.category || 'general';
+        const query = job.goal.itemData?.searchTerm || job.goal.title;
+        const retailerFilters = job.goal.itemData?.retailerFilters || null;
 
+        // Only support vehicle category
         if (category !== 'vehicle') {
-          this.logger.log(`⏭️ Skipping goal "${job.goal.title}" - category "${category}" not yet supported (only vehicle is supported)`);
-
-          // Update statusBadge to not_supported for unsupported categories
+          this.logger.log(`⏭️ Skipping goal "${job.goal.title}" - category "${category}" not yet supported`);
           await this.prisma.itemGoalData.update({
             where: { goalId: job.goal.id },
             data: { statusBadge: 'not_supported' },
           });
-
-          // Mark job as completed with error message
           await this.prisma.scrapeJob.update({
             where: { id: job.id },
             data: {
@@ -128,20 +164,29 @@ export class ScraperService {
           continue;
         }
 
-        // Dispatch to remote worker
-        await this.dispatchJobToWorker(job.id);
+        // Generate retailerFilters if missing (worker needs them to run scrapers)
+        if (!retailerFilters) {
+          this.logger.log(`No retailerFilters for goal ${job.goal.id}, generating...`);
+          try {
+            const generatedFilters = await this.vehicleFilterService.parseQuery(query);
+            if (generatedFilters && generatedFilters.retailers) {
+              await this.prisma.itemGoalData.update({
+                where: { goalId: job.goal.id },
+                data: { retailerFilters: generatedFilters },
+              });
+              this.logger.log(`✅ Generated retailerFilters for goal ${job.goal.id}`);
+            }
+          } catch (error) {
+            this.logger.error(`Failed to generate retailerFilters: ${error.message}`);
+          }
+        } else {
+          this.logger.log(`Job ${job.id} already has retailerFilters, waiting for worker to poll`);
+        }
+
+        // Worker polls for jobs - we don't dispatch here anymore
 
       } catch (error) {
-        // Mark as failed, increment attempts
-        await this.prisma.scrapeJob.update({
-          where: { id: job.id },
-          data: {
-            status: 'failed',
-            attempts: { increment: 1 },
-            error: error.message,
-          },
-        });
-        this.logger.error(`❌ Failed to dispatch job ${job.id}:`, error);
+        this.logger.error(`Error processing job ${job.id}:`, error);
       }
     }
   }

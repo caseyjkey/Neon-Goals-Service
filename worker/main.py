@@ -2,7 +2,10 @@ import subprocess
 import sys
 import os
 import logging
+import asyncio
+import time
 from typing import Optional, Dict, Any
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks, Request, HTTPException
 from fastapi.responses import JSONResponse
 import requests
@@ -14,7 +17,98 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-app = FastAPI(title="Scraper Worker", version="0.1.0")
+# Backend API URL (worker polls this for jobs)
+# Use environment variable or default to EC2 public URL
+BACKEND_API_URL = os.getenv("NEON_GOALS_API_URL", "https://goals.keycasey.com")
+
+# Polling state
+polling_task: Optional[asyncio.Task] = None
+should_poll = True
+
+
+async def poll_for_jobs():
+    """
+    Background polling loop that periodically checks the backend for pending jobs.
+    This avoids Tailscale TCP-over-DERP issues where backend can't connect to worker.
+    """
+    global should_poll
+    poll_interval = 30  # seconds
+
+    while should_poll:
+        try:
+            # Poll backend for pending jobs
+            response = requests.post(
+                f"{BACKEND_API_URL}/api/scrapers/poll",
+                timeout=10
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                job = data.get("job")
+
+                if job:
+                    job_id = job.get("id")
+                    goal_id = job.get("goalId")
+                    search_term = job.get("searchTerm")
+                    retailer_filters = job.get("retailerFilters")
+                    category = job.get("category", "general")
+
+                    logger.info(f"📋 Pulled job {job_id} for goal {goal_id}: {search_term}")
+
+                    if category == "vehicle":
+                        # Build callback URL (worker calls back to backend)
+                        callback_url = f"{BACKEND_API_URL}/api/scrapers/callback"
+
+                        # Run all scrapers in background
+                        asyncio.create_task(
+                            run_all_scrapers_and_callback(
+                                query=search_term,
+                                vehicle_filters={"retailers": retailer_filters} if retailer_filters else None,
+                                job_id=str(job_id),
+                                callback_url=callback_url,
+                                use_retailer_filters=bool(retailer_filters)
+                            )
+                        )
+                    else:
+                        logger.warning(f"Unsupported category: {category}")
+            else:
+                logger.warning(f"Poll failed with status {response.status_code}")
+
+        except requests.exceptions.Timeout:
+            logger.warning("Poll request timed out")
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Poll request failed: {e}")
+        except Exception as e:
+            logger.error(f"Poll loop error: {e}")
+
+        # Wait before next poll
+        await asyncio.sleep(poll_interval)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Manage lifespan events - start polling on startup."""
+    global polling_task
+
+    # Startup
+    logger.info(f"🚀 Worker starting up - will poll {BACKEND_API_URL} for jobs every 30s")
+    polling_task = asyncio.create_task(poll_for_jobs())
+
+    yield
+
+    # Shutdown
+    logger.info("🛑 Worker shutting down...")
+    global should_poll
+    should_poll = False
+    if polling_task:
+        polling_task.cancel()
+        try:
+            await polling_task
+        except asyncio.CancelledError:
+            pass
+
+
+app = FastAPI(title="Scraper Worker", version="0.1.0", lifespan=lifespan)
 
 # Base directory for scrapers (relative to worker dir)
 SCRAPER_BASE_DIR = "/home/alpha/Development/Neon-Goals-Service"
