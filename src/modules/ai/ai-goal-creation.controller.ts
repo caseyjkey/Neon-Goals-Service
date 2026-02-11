@@ -105,40 +105,6 @@ export class AiGoalChatController {
       message: 'Commands executed successfully',
     };
   }
-
-  /**
-   * Cancel pending commands for a specific goal
-   * Frontend calls this when user clicks "Cancel" on the command preview
-   */
-  @Post(':goalId/cancel')
-  async cancelCommands(
-    @Param('goalId') goalId: string,
-    @CurrentUser('userId') userId: string,
-    @Body() body?: { reason?: string },
-  ) {
-    // Verify the goal belongs to the user
-    const goal = await this.prisma.goal.findUnique({
-      where: { id: goalId },
-    });
-
-    if (!goal) {
-      return {
-        error: 'Goal not found',
-      };
-    }
-
-    if (goal.userId !== userId) {
-      return {
-        error: 'Unauthorized',
-      };
-    }
-
-    const reason = body?.reason || 'User cancelled';
-    return {
-      cancelled: true,
-      message: `Commands cancelled: ${reason}`,
-    };
-  }
 }
 
 @Controller('ai/overview')
