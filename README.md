@@ -1,6 +1,6 @@
 # Neon Goals Service
 
-NestJS backend service for goal tracking and car listing scraping.
+NestJS backend service for tracking financial, action, and item goals scraping.
 
 ## Features
 
