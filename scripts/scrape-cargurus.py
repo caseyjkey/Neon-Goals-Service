@@ -596,7 +596,7 @@ async def scrape_cars(search_filters: dict, max_results: int = 10):
                             mileage = extract_number(mileage_match.group(1))
 
                         image = ''
-                        # Try img tag first, then fallback to image tag
+                        # Try img tag first, then fallback to image tag, then SVG-embedded image
                         img_elem = await listing.query_selector('img')
                         if img_elem:
                             image = await img_elem.get_attribute('src') or ''
@@ -605,6 +605,11 @@ async def scrape_cars(search_filters: dict, max_results: int = 10):
                             image_elem = await listing.query_selector('image')
                             if image_elem:
                                 image = await image_elem.get_attribute('src') or ''
+                            else:
+                                # Some listings use SVG with embedded <image> tag
+                                svg_image_elem = await listing.query_selector('svg image')
+                                if svg_image_elem:
+                                    image = await svg_image_elem.get_attribute('xlink:href') or ''
 
                         url = ''
                         tag_name = await listing.evaluate('el => el.tagName')
@@ -769,7 +774,7 @@ async def scrape_cars(search_filters: dict, max_results: int = 10):
 
                 # Extract image
                 image = ''
-                # Try img tag first, then fallback to image tag
+                # Try img tag first, then fallback to image tag, then SVG-embedded image
                 img_elem = await listing.query_selector('img')
                 if img_elem:
                     image = await img_elem.get_attribute('src') or ''
@@ -778,6 +783,11 @@ async def scrape_cars(search_filters: dict, max_results: int = 10):
                     image_elem = await listing.query_selector('image')
                     if image_elem:
                         image = await image_elem.get_attribute('src') or ''
+                    else:
+                        # Some listings use SVG with embedded <image> tag
+                        svg_image_elem = await listing.query_selector('svg image')
+                        if svg_image_elem:
+                            image = await svg_image_elem.get_attribute('xlink:href') or ''
 
                 # Extract URL
                 url = ''
