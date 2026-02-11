@@ -1,0 +1,88 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-service:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Service to EC2
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script_stop: true
+          script: |
+            # Set up environment
+            cd /var/www/Neon-Goals-Service
+
+            # Pull latest changes
+            echo "Pulling latest changes..."
+            git fetch origin
+            git reset --hard origin/main
+
+            # Install dependencies
+            echo "Installing dependencies..."
+            bun install --frozen-lockfile
+
+            # Generate Prisma Client
+            echo "Generating Prisma Client..."
+            bun run prisma:generate
+
+            # Run database migrations
+            echo "Running database migrations..."
+            bun run prisma:migrate
+
+            # Build the NestJS app
+            echo "Building NestJS app..."
+            bun run build
+
+            # Restart PM2 process
+            echo "Restarting PM2 process..."
+            pm2 restart neon-goals-service
+
+            # Show status
+            echo "Deployment complete. Status:"
+            pm2 list | grep neon-goals-service
+
+  deploy-worker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deploy Worker to Gilbert
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.GILBERT_HOST }}
+          username: ${{ secrets.GILBERT_USER }}
+          key: ${{ secrets.GILBERT_SSH_KEY }}
+          script_stop: true
+          script: |
+            # Set up environment
+            cd /home/alpha/Development/Neon-Goals-Service
+
+            # Pull latest changes
+            echo "Pulling latest changes..."
+            git fetch origin
+            git reset --hard origin/main
+
+            # Install dependencies
+            echo "Installing dependencies..."
+            bun install --frozen-lockfile
+
+            # Generate Prisma Client
+            echo "Generating Prisma Client..."
+            bun run prisma:generate
+
+            # Restart worker service
+            echo "Restarting worker service..."
+            sudo systemctl restart scraper-worker.service
+
+            # Wait for service to start
+            sleep 2
+
+            # Show status
+            echo "Worker deployment complete. Status:"
+            sudo systemctl status scraper-worker.service --no-pager | head -15
