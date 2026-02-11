@@ -1753,6 +1753,18 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
       .replace(/ARCHIVE_GOAL:\s*{[^}]+}/g, '')
       .trim();
 
+    // Clean up empty code blocks left behind after removing commands
+    // Remove single backticks on their own line (or with whitespace)
+    cleaned = cleaned.replace(/^\s*`\s*$/gm, '');
+    // Remove empty triple backtick blocks
+    cleaned = cleaned.replace(/```\s*```/g, '');
+    // Remove any remaining empty code block markers
+    cleaned = cleaned.replace(/```\s*\n\s*```/g, '');
+    // Clean up excessive newlines (more than 2 consecutive)
+    cleaned = cleaned.replace(/\n{3,}/g, '\n\n');
+    // Trim whitespace from lines
+    cleaned = cleaned.split('\n').map(line => line.trimEnd()).join('\n').trim();
+
     return cleaned;
   }
 
