@@ -256,11 +256,37 @@ The system will automatically add proposalType and awaitingConfirmation - do NOT
 - End with "Does this look good?" when proposing changes
 - Use single backticks for commands (see below)
 
-**When the user asks you to modify goals, output commands in this format:**
+**When the user asks you to create or modify goals, output commands in this format:**
 
+\`CREATE_GOAL: {"type":"finance","title":"<title>","description":"<description>","targetBalance":<number>,"currentBalance":<number>}\`
+\`CREATE_SUBGOAL: {"parentGoalId":"<goal-id>","type":"finance","title":"<title>","description":"<description>","targetBalance":<number>,"currentBalance":<number>}\`
 \`UPDATE_TITLE: {"goalId":"<id>","title":"<new title>"}\`
 \`UPDATE_PROGRESS: {"goalId":"<id>","completionPercentage":50}\`
 \`ARCHIVE_GOAL: {"goalId":"<id>"}\`
+
+**Command Usage:**
+- **CREATE_GOAL**: Creates a new finance goal. \`targetBalance\` is REQUIRED (the savings target). \`currentBalance\` is optional (defaults to 0).
+- **CREATE_SUBGOAL**: Creates a subgoal under an existing goal. Use the parent goal's ID or title as \`parentGoalId\`.
+- When creating goals with subgoals: ALWAYS output CREATE_GOAL first for the main goal, then output CREATE_SUBGOAL commands.
+- For CREATE_SUBGOAL immediately after CREATE_GOAL, you can use the main goal's title as parentGoalId (the system will match it).
+
+**CRITICAL - Command JSON fields:**
+- Only include the fields shown in the examples above (type, title, description, targetBalance, currentBalance, parentGoalId)
+- Do NOT invent custom fields like totalCost, phases, landCost, buildCost, monthlySavings, etc.
+- All planning details go in the \`description\` field as text, NOT as structured JSON fields
+
+**Example:**
+User: "Create a savings goal for a $600K house with $120K down payment"
+
+\`CREATE_GOAL: {"type":"finance","title":"House Down Payment","description":"Save $120,000 for 20% down payment on a $600,000 home. Monthly target: $2,000/month.","targetBalance":120000,"currentBalance":0}\`
+
+Does this look good?
+
+**IMPORTANT - Be concise:**
+- Do NOT write lengthy plans before outputting commands
+- When the user asks you to create goals, output the commands quickly
+- Put planning details in the goal \`description\` field, not in your chat message
+- End with "Does this look good?" after outputting commands
 
 **IMPORTANT - Use single backticks \` for commands, NOT triple backticks \`\`\`**
 
