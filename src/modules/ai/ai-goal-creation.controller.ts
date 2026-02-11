@@ -13,6 +13,7 @@ export class AiGoalChatController {
   constructor(
     private openaiService: OpenAIService,
     private prisma: PrismaService,
+    private goalCommandService: GoalCommandService,
   ) {}
 
   /**
@@ -68,6 +69,74 @@ export class AiGoalChatController {
       goalPreview: result.goalPreview,
       awaitingConfirmation: result.awaitingConfirmation,
       proposalType: result.proposalType,
+    };
+  }
+
+  /**
+   * Confirm and execute parsed commands for a specific goal
+   * Frontend calls this after user confirms the command preview
+   */
+  @Post(':goalId/confirm')
+  async confirmCommands(
+    @Param('goalId') goalId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() body: { commands: any[] },
+  ) {
+    // Verify the goal belongs to the user
+    const goal = await this.prisma.goal.findUnique({
+      where: { id: goalId },
+    });
+
+    if (!goal) {
+      return {
+        error: 'Goal not found',
+      };
+    }
+
+    if (goal.userId !== userId) {
+      return {
+        error: 'Unauthorized',
+      };
+    }
+
+    const executedCommands = await this.goalCommandService.executeCommands(userId, body.commands);
+    return {
+      executedCommands,
+      message: 'Commands executed successfully',
+    };
+  }
+
+  /**
+   * Cancel pending commands for a specific goal
+   * Frontend calls this when user clicks "Cancel" on the command preview
+   */
+  @Post(':goalId/cancel')
+  async cancelCommands(
+    @Param('goalId') goalId: string,
+    @CurrentUser('userId') userId: string,
+    @Body() body?: { reason?: string },
+  ) {
+    // Verify the goal belongs to the user
+    const goal = await this.prisma.goal.findUnique({
+      where: { id: goalId },
+    });
+
+    if (!goal) {
+      return {
+        error: 'Goal not found',
+      };
+    }
+
+    if (goal.userId !== userId) {
+      return {
+        error: 'Unauthorized',
+      };
+    }
+
+    const reason = body?.reason || 'User cancelled';
+    return {
+      cancelled: true,
+      message: `Commands cancelled: ${reason}`,
     };
   }
 }
