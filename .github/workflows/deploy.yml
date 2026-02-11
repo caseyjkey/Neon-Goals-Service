@@ -11,6 +11,7 @@ jobs:
     steps:
       - name: Deploy Service
         run: |
+          export PATH=/home/ec2-user/.bun/bin:$PATH
           cd /var/www/Neon-Goals-Service
           git fetch origin
           git reset --hard origin/main
@@ -26,6 +27,7 @@ jobs:
     steps:
       - name: Deploy Worker
         run: |
+          export PATH=/home/ec2-user/.bun/bin:$PATH
           cd /home/alpha/Development/Neon-Goals-Service
           git fetch origin
           git reset --hard origin/main
