@@ -487,27 +487,26 @@ export class GoalCommandService {
    * Update goal progress
    */
   async updateProgress(userId: string, data: any) {
-    const { goalId, completionPercentage } = data;
+    const { goalId, currentBalance } = data;
 
     const goal = await this.prisma.goal.findFirst({
       where: {
         id: goalId,
         userId,
       },
+      include: { financeData: true },
     });
 
     if (!goal) {
       throw new Error(`Goal not found: ${goalId}`);
     }
 
-    if (goal.type === 'action') {
-      await this.prisma.actionGoalData.update({
+    if (goal.type === 'finance' && goal.financeData) {
+      await this.prisma.financeGoalData.update({
         where: { goalId },
-        data: { completionPercentage },
+        data: { currentBalance },
       });
     }
-
-    // For other types, implement as needed
   }
 
   /**

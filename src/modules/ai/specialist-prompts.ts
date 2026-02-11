@@ -130,8 +130,10 @@ The system will automatically add these - do NOT include them in your command ou
 
 **Goal Updates:**
 \`UPDATE_TITLE: {"goalId":"<id>","title":"<new display title>"}\`
-\`UPDATE_PROGRESS: {"goalId":"<id>","completionPercentage":<0-100>}\`
 \`ARCHIVE_GOAL: {"goalId":"<id>"}\`
+
+**Finance Goal Progress:**
+\`UPDATE_PROGRESS: {"goalId":"<id>","currentBalance":<amount-saved>}\`
 
 **Item/Vehicle Search:**
 \`UPDATE_SEARCHTERM: {"goalId":"<id>","searchTerm":"<new search query>"}\`
@@ -147,6 +149,8 @@ The system will automatically add these - do NOT include them in your command ou
 - For CREATE_SUBGOAL after CREATE_GOAL, use the main goal's title as parentGoalId
 - Vehicle goals: use \`searchTerm\` (natural language), system auto-generates retailer filters
 - Item goal titles: item name only, NEVER start with "Buy", "Purchase", "Get", "Find"
+- For action goals: use TOGGLE_TASK to mark tasks complete — progress updates automatically based on task completion
+- For finance goals: use UPDATE_PROGRESS with \`currentBalance\` to record how much has been saved
 - End with "Does this look good?" after outputting commands
 - Be concise - output commands quickly, put details in \`description\` field
 
@@ -240,8 +244,10 @@ The system will automatically add proposalType and awaitingConfirmation - do NOT
 
 **Goal Updates:**
 \`UPDATE_TITLE: {"goalId":"<id>","title":"<new title>"}\`
-\`UPDATE_PROGRESS: {"goalId":"<id>","completionPercentage":<0-100>}\`
 \`ARCHIVE_GOAL: {"goalId":"<id>"}\`
+
+**Finance Goal Progress:**
+\`UPDATE_PROGRESS: {"goalId":"<id>","currentBalance":<amount-saved>}\`
 
 **Task Management (for action goals):**
 \`ADD_TASK: {"goalId":"<id>","task":{"title":"<task title>"}}\`
@@ -249,10 +255,12 @@ The system will automatically add proposalType and awaitingConfirmation - do NOT
 \`TOGGLE_TASK: {"taskId":"<task-id>"}\`
 
 **Rules:**
-- Finance goals: \`targetBalance\` is REQUIRED. \`currentBalance\` is optional (defaults to 0).
+- Finance goals: \`targetBalance\` is REQUIRED for CREATE_GOAL. \`currentBalance\` is optional (defaults to 0).
+- UPDATE_PROGRESS for finance goals: sets \`currentBalance\` (the amount saved so far toward the target)
 - Only include fields shown above - do NOT invent custom fields (no totalCost, phases, landCost, etc.)
 - All planning details go in the \`description\` field as text, NOT as structured JSON fields
 - For CREATE_SUBGOAL after CREATE_GOAL, use the main goal's title as parentGoalId
+- For action goals: use TOGGLE_TASK to mark tasks complete — progress updates automatically
 - Be concise - output commands quickly, put details in \`description\` field
 - End with "Does this look good?" after outputting commands
 
@@ -262,6 +270,10 @@ User: "Create a savings goal for a $600K house with $120K down payment"
 \`CREATE_GOAL: {"type":"finance","title":"House Down Payment","description":"Save $120,000 for 20% down payment on a $600,000 home. Monthly target: $2,000/month.","targetBalance":120000,"currentBalance":0}\`
 
 Does this look good?
+
+User: "I've saved $500 toward my house fund"
+
+\`UPDATE_PROGRESS: {"goalId":"<house-goal-id>","currentBalance":500}\`
 
 **IMPORTANT - Use single backticks \` for commands, NOT triple backticks \`\`\`**`,
 
@@ -322,8 +334,10 @@ The system will automatically add these - do NOT include them in your command ou
 
 **Goal Updates:**
 \`UPDATE_TITLE: {"goalId":"<id>","title":"<new title>"}\`
-\`UPDATE_PROGRESS: {"goalId":"<id>","completionPercentage":<0-100>}\`
 \`ARCHIVE_GOAL: {"goalId":"<id>"}\`
+
+**Finance Goal Progress:**
+\`UPDATE_PROGRESS: {"goalId":"<id>","currentBalance":<amount-saved>}\`
 
 **Task Management (for action goals):**
 \`ADD_TASK: {"goalId":"<id>","task":{"title":"<task title>"}}\`
@@ -334,6 +348,8 @@ The system will automatically add these - do NOT include them in your command ou
 - Only include fields shown above - do NOT invent custom fields
 - For CREATE_SUBGOAL after CREATE_GOAL, use the main goal's title as parentGoalId
 - Deadline format: ISO 8601 (YYYY-MM-DDTHH:mm:ss)
+- For action goals: progress is based on task completion. Use TOGGLE_TASK to mark tasks done — progress updates automatically. Do NOT use UPDATE_PROGRESS for action goals.
+- UPDATE_PROGRESS is for finance goals only — sets \`currentBalance\` (amount saved so far)
 - Be concise - output commands quickly, put details in \`description\` field
 - End with "Does this look good?" after outputting commands
 

@@ -932,10 +932,11 @@ For item subgoals (vehicles, etc.), also include category and searchTerm:
 CREATE_SUBGOAL: {"parentGoalId":"<goal-id>","type":"item","title":"<title>","category":"vehicle","searchTerm":"<search-term>"}
 \`\`\`
 
-**Update goal progress:**
+**Update finance goal progress (amount saved):**
 \`\`\`
-UPDATE_PROGRESS: {"goalId":"<goal-id>","completionPercentage":50}
+UPDATE_PROGRESS: {"goalId":"<goal-id>","currentBalance":5000}
 \`\`\`
+Note: UPDATE_PROGRESS is for finance goals only — sets currentBalance (amount saved so far). For action goals, use TOGGLE_TASK to mark tasks done — progress updates automatically.
 
 **Modify existing goals:**
 \`\`\`
