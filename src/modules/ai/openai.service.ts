@@ -496,14 +496,29 @@ REFRESH_CANDIDATES: {"goalId":"${goalContext.id}"}
 ARCHIVE_GOAL: {"goalId":"${goalContext.id}"}
 \`\`\`
 
+**CRITICAL - Command Format Rules:**
+
+❌ **WRONG - Do NOT output this:**
+UPDATE_SEARCHTERM: {"goalId":"abc","searchTerm":"...","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
+                                                        ↑^^^^^^^^^^^^^^^ ↑^^^^^^^^^^^^^^^^^^^^^ REMOVE THESE!
+
+✅ **CORRECT - Output this instead:**
+UPDATE_SEARCHTERM: {"goalId":"abc","searchTerm":"2023-2024 GMC Sierra within 500 miles of 94002"}
+
+**The system will automatically add proposalType and awaitingConfirmation - NEVER include them yourself.**
+
 **Command Usage:**
 - **UPDATE_TITLE**: Changes the display name of the goal only (e.g., "New Truck" → "My Dream Truck")
 - **UPDATE_SEARCHTERM**: Updates the search criteria and regenerates retailer filters (use when user wants to modify search parameters)
 - **REFRESH_CANDIDATES**: Queues a scrape job to find new candidates using the current search criteria
 - **ARCHIVE_GOAL**: Archives the goal
 
+**Response Format:**
+- Keep responses brief and conversational
+- Show the new searchTerm clearly (no code blocks needed, just plain text)
+- End with "Does this look good?" when proposing changes
+
 **Important:**
-- Output ONLY the command JSON - do NOT include proposalType or awaitingConfirmation (these are added automatically by the system)
 - When user asks to change the NAME/DISPLAY TITLE → Output UPDATE_TITLE
 - When user asks to change/modify SEARCH CRITERIA → Output UPDATE_SEARCHTERM (after asking clarifying questions)
 - After UPDATE_SEARCHTERM is confirmed, ALWAYS offer REFRESH_CANDIDATES as a follow-up proposal
@@ -603,7 +618,7 @@ ${message}`;
       ]);
 
       // Parse structured commands
-      const commands = this.parseCommands(content);
+      const commands = this.sanitizeCommands(this.parseCommands(content));
 
       const apiResponse: { content: string; commands?: any[]; goalPreview?: string; awaitingConfirmation?: boolean; proposalType?: string } = {
         content: this.cleanCommandsFromContent(content),
@@ -751,6 +766,14 @@ CREATE_GOAL: {"type":"item","title":"GMC Sierra","proposalType":"confirm_edit_ca
 CREATE_GOAL: {"type":"item","title":"GMC Sierra"}
 
 The system will automatically add proposalType and awaitingConfirmation - do NOT include them in your command output.
+
+**Response Format Guidelines:**
+- Keep responses brief and conversational
+- For UPDATE_SEARCHTERM: show the new search term clearly as plain text (no code blocks needed)
+- End with "Does this look good?" when proposing changes
+- Avoid unnecessary formatting like empty code blocks
+
+**REMINDER: EVERY command below should have ONLY the relevant data fields, NEVER proposalType or awaitingConfirmation!**
 
 When you want to take specific actions, use these formats:
 
@@ -1050,7 +1073,7 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
       ], chatId);
 
       // Parse structured commands
-      const commands = this.parseCommands(content);
+      const commands = this.sanitizeCommands(this.parseCommands(content));
 
       const apiResponse: { content: string; commands?: any[]; goalPreview?: string; awaitingConfirmation?: boolean; proposalType?: string } = {
         content: this.cleanCommandsFromContent(content),
@@ -1454,6 +1477,25 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
     }
 
     return commands;
+  }
+
+  /**
+   * Sanitize command data by removing fields that should only be added by the backend
+   * This prevents LLMs from accidentally including proposalType and awaitingConfirmation
+   */
+  private sanitizeCommands(commands: any[]): any[] {
+    const fieldsToRemove = ['proposalType', 'awaitingConfirmation'];
+
+    return commands.map(cmd => {
+      if (cmd.data && typeof cmd.data === 'object') {
+        const sanitized = { ...cmd.data };
+        for (const field of fieldsToRemove) {
+          delete sanitized[field];
+        }
+        return { ...cmd, data: sanitized };
+      }
+      return cmd;
+    });
   }
 
   /**
@@ -2139,7 +2181,7 @@ ${acc.recentTransactions.slice(0, 20).map(t =>
       ], chatId);
 
       // Parse structured commands
-      const commands = this.parseCommands(content);
+      const commands = this.sanitizeCommands(this.parseCommands(content));
 
       return {
         content: this.cleanCommandsFromContent(content),
