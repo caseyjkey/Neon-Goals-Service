@@ -487,25 +487,33 @@ You are helping with the specific item goal: "${goalContext.title}" (ID: ${goalC
 - Description: ${goalContext.description || 'No description'}
 
 **Available Commands:**
-When the user wants to modify their goal, output commands in this EXACT format:
+When the user wants to modify their goal, output commands in this EXACT format inside a single-line code block:
 
-\`\`\`
-UPDATE_TITLE: {"goalId":"${goalContext.id}","title":"<new display title>"}
-UPDATE_SEARCHTERM: {"goalId":"${goalContext.id}","searchTerm":"<new search query>"}
-REFRESH_CANDIDATES: {"goalId":"${goalContext.id}"}
-ARCHIVE_GOAL: {"goalId":"${goalContext.id}"}
-\`\`\`
+\`UPDATE_TITLE: {"goalId":"${goalContext.id}","title":"<new display title>"}\`
+\`UPDATE_SEARCHTERM: {"goalId":"${goalContext.id}","searchTerm":"<new search query>"}\`
+\`REFRESH_CANDIDATES: {"goalId":"${goalContext.id}"}\`
+\`ARCHIVE_GOAL: {"goalId":"${goalContext.id}"}\`
 
-**CRITICAL - Command Format Rules:**
+**CRITICAL - Formatting Rules:**
+1. **MANDATORY DESCRIPTION:** You must explicitly state the new search criteria or title in plain text before the command.
+2. **NO EMPTY BLOCKS:** Do not use triple backticks (\`\`\`). Only use single backticks (\`) for the command line.
+3. **CLEAN JSON:** Never include "proposalType" or "awaitingConfirmation" in the JSON.
 
-❌ **WRONG - Do NOT output this:**
-UPDATE_SEARCHTERM: {"goalId":"abc","searchTerm":"...","proposalType":"confirm_edit_cancel","awaitingConfirmation":true}
-                                                        ↑^^^^^^^^^^^^^^^ ↑^^^^^^^^^^^^^^^^^^^^^ REMOVE THESE!
+**Response Structure (Follow this sequence):**
+1. **Intro:** A brief, friendly sentence explaining the change.
+2. **Value Preview:** Show the new searchTerm or title clearly as plain text so the user can read it.
+3. **Command:** The command wrapped in a single-line code block using single backticks.
+4. **Call to Action:** End with "Does this look good?"
 
-✅ **CORRECT - Output this instead:**
-UPDATE_SEARCHTERM: {"goalId":"abc","searchTerm":"2023-2024 GMC Sierra within 500 miles of 94002"}
+**Example Proper Response:**
+I'll update your search to remove the color constraint and increase your budget to $120,000.
 
-**The system will automatically add proposalType and awaitingConfirmation - NEVER include them yourself.**
+New search term:
+2023-2024 GMC Sierra 3500HD Denali Ultimate within 500 miles of 94002 under 120000
+
+\`UPDATE_SEARCHTERM: {"goalId":"${goalContext.id}","searchTerm":"2023-2024 GMC Sierra 3500HD Denali Ultimate within 500 miles of 94002 under 120000"}\`
+
+Does this look good?
 
 **Command Usage:**
 - **UPDATE_TITLE**: Changes the display name of the goal only (e.g., "New Truck" → "My Dream Truck")
@@ -513,17 +521,11 @@ UPDATE_SEARCHTERM: {"goalId":"abc","searchTerm":"2023-2024 GMC Sierra within 500
 - **REFRESH_CANDIDATES**: Queues a scrape job to find new candidates using the current search criteria
 - **ARCHIVE_GOAL**: Archives the goal
 
-**Response Format:**
-- Keep responses brief and conversational
-- Show the new searchTerm clearly (no code blocks needed, just plain text)
-- End with "Does this look good?" when proposing changes
-
 **Important:**
 - When user asks to change the NAME/DISPLAY TITLE → Output UPDATE_TITLE
 - When user asks to change/modify SEARCH CRITERIA → Output UPDATE_SEARCHTERM (after asking clarifying questions)
 - After UPDATE_SEARCHTERM is confirmed, ALWAYS offer REFRESH_CANDIDATES as a follow-up proposal
 - When user asks to archive/delete → Output ARCHIVE_GOAL
-- After outputting any command, end your response with "Does this look good?"
 `;
     }
 
