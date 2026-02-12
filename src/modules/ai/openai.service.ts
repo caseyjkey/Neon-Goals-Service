@@ -2152,7 +2152,7 @@ ${transactionSummary.totalTransactions} transactions found across ${transactionS
 
 ${transactionSummary.accounts.map(acc => `
 **${acc.institutionName} - ${acc.accountName}** (${acc.transactionCount} transactions)
-${acc.recentTransactions.slice(0, 20).map(t =>
+${acc.recentTransactions.map(t =>
   `- ${t.date}: ${t.merchantName} - $${t.amount} (${t.category})`
 ).join('\n')}
 `).join('\n')}`;
@@ -2191,10 +2191,19 @@ ${acc.recentTransactions.slice(0, 20).map(t =>
       // Parse structured commands
       const commands = this.sanitizeCommands(this.parseCommands(content));
 
-      return {
+      const apiResponse: { content: string; commands?: any[]; goalPreview?: string; awaitingConfirmation?: boolean; proposalType?: string } = {
         content: this.cleanCommandsFromContent(content),
-        commands,
+        commands
       };
+
+      // Add confirmation data if commands exist
+      if (commands.length > 0) {
+        apiResponse.goalPreview = this.generateGoalPreview(commands);
+        apiResponse.awaitingConfirmation = true;
+        apiResponse.proposalType = this.getProposalTypeForCommand(commands[0].type);
+      }
+
+      return apiResponse;
     } catch (error) {
       this.logger.error(`Category chat error (${categoryId}):`, error);
       throw error;
@@ -2265,7 +2274,7 @@ ${transactionSummary.totalTransactions} transactions found across ${transactionS
 
 ${transactionSummary.accounts.map(acc => `
 **${acc.institutionName} - ${acc.accountName}** (${acc.transactionCount} transactions)
-${acc.recentTransactions.slice(0, 20).map(t =>
+${acc.recentTransactions.map(t =>
   `- ${t.date}: ${t.merchantName} - $${t.amount} (${t.category})`
 ).join('\n')}
 `).join('\n')}`;
@@ -2301,7 +2310,7 @@ ${acc.recentTransactions.slice(0, 20).map(t =>
       }
 
       // Parse commands from the full response
-      const commands = this.parseCommands(fullContent);
+      const commands = this.sanitizeCommands(this.parseCommands(fullContent));
 
       // Prepare final chunk
       const finalChunk: { content: string; done: true; goalPreview?: string; awaitingConfirmation?: boolean; proposalType?: string; commands?: any[] } = {
@@ -2313,10 +2322,7 @@ ${acc.recentTransactions.slice(0, 20).map(t =>
         finalChunk.goalPreview = this.generateGoalPreview(commands);
         finalChunk.awaitingConfirmation = true;
         finalChunk.commands = commands;
-        // Extract proposalType from the first command's data
-        if (commands[0]?.data?.proposalType) {
-          finalChunk.proposalType = commands[0].data.proposalType;
-        }
+        finalChunk.proposalType = this.getProposalTypeForCommand(commands[0].type);
       }
 
       // Add assistant response to history
