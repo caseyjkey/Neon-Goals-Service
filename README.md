@@ -1,6 +1,7 @@
 # Neon Goals Service
 
 NestJS backend service for tracking financial, action, and item goals scraping. Distributed architecture!
+Integrate your specialized goal agents into frameworks such as OpenClaw, Clawdbot, or Nanobot to build your persona.
 
 ## Features
 
