@@ -22,3 +22,8 @@ jobs:
           pm2 restart neon-goals-service
           pm2 list | grep neon-goals-service
 
+      - name: Deploy Worker
+        run: |
+          cd /var/www/Neon-Goals-Service
+          bash scripts/deploy-worker.sh
+
