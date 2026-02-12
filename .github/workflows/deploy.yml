@@ -28,11 +28,10 @@ jobs:
       - name: Deploy Worker
         run: |
           export PATH=/home/ec2-user/.bun/bin:$PATH
-          cd /home/alpha/Development/Neon-Goals-Service
+          cd /var/www/Neon-Goals-Service
           git fetch origin
           git reset --hard origin/main
           bun install --frozen-lockfile
-          bun run prisma:generate
           sudo systemctl restart scraper-worker.service
           sleep 2
           sudo systemctl status scraper-worker.service --no-pager | head -15
