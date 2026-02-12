@@ -22,16 +22,3 @@ jobs:
           pm2 restart neon-goals-service
           pm2 list | grep neon-goals-service
 
-  deploy-worker:
-    runs-on: self-hosted
-    steps:
-      - name: Deploy Worker
-        run: |
-          export PATH=/home/ec2-user/.bun/bin:$PATH
-          cd /var/www/Neon-Goals-Service
-          git fetch origin
-          git reset --hard origin/main
-          bun install --frozen-lockfile
-          sudo systemctl restart scraper-worker.service
-          sleep 2
-          sudo systemctl status scraper-worker.service --no-pager | head -15
