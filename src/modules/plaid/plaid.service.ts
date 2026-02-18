@@ -129,12 +129,12 @@ export class PlaidService {
 
       // Get accounts with balances
       this.logger.log('Fetching accounts with balances...');
-      // Use 5 minutes ago as min_last_updated_datetime for fresh links
-      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+      // Use 24 hours ago - Plaid balances typically update daily
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
       const accountsResponse = await this.plaidClient.accountsBalanceGet({
         access_token: access_token,
         options: {
-          min_last_updated_datetime: fiveMinutesAgo.toISOString(),
+          min_last_updated_datetime: oneDayAgo.toISOString(),
         },
       });
 
@@ -276,10 +276,14 @@ export class PlaidService {
       throw new BadRequestException('Plaid account not found');
     }
 
+    // Use at most 24 hours ago to avoid "datetime out of range" errors
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const minUpdateTime = account.lastSync < oneDayAgo ? account.lastSync : oneDayAgo;
+
     const response = await this.plaidClient.accountsBalanceGet({
       access_token: account.accessToken,
       options: {
-        min_last_updated_datetime: account.lastSync.toISOString(),
+        min_last_updated_datetime: minUpdateTime.toISOString(),
       },
     });
 
@@ -449,10 +453,14 @@ export class PlaidService {
       throw new BadRequestException('Plaid account not found');
     }
 
+    // Use at most 24 hours ago to avoid "datetime out of range" errors
+    const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const minUpdateTime = account.lastSync < oneDayAgo ? account.lastSync : oneDayAgo;
+
     const response = await this.plaidClient.accountsBalanceGet({
       access_token: account.accessToken,
       options: {
-        min_last_updated_datetime: account.lastSync.toISOString(),
+        min_last_updated_datetime: minUpdateTime.toISOString(),
       },
     });
 
