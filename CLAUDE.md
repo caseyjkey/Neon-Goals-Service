@@ -6,6 +6,31 @@ NestJS backend service for the Neon Goals application. Provides REST APIs for us
 
 ---
 
+## Session Memory System
+
+**At the start of each session:**
+1. Check for `thoughts/YYYY-MM-DD.md` (today's short-term memory)
+2. If no file for today but previous day exists:
+   - Summarize the previous day's short-term memory
+   - Append summary to `thoughts/MEMORY.md` (long-term memory)
+   - Create today's file
+3. Read the file to understand what's been worked on
+
+**As you work:**
+- Update today's short-term memory file with:
+  - What has been done / root causes / features implemented
+  - Purpose and progress of current work
+  - Plans made or completed
+- Keep notes **succinct and high-level**
+- Implementation details go in `thoughts/plans/` folder
+
+**For multi-step tasks:**
+- Create plan files in `thoughts/plans/`
+- Make plans parallelizable when possible
+- Use subagents to complete parallel steps
+
+---
+
 ## Table of Contents
 
 - [Authentication](#authentication)

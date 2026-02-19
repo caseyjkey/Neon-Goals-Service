@@ -37,3 +37,6 @@ worker/__pycache__/
 logs/
 .pm2/
 bun.lock
+
+# Claude memory and planning
+thoughts/
