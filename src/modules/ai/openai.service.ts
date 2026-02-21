@@ -2210,10 +2210,8 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
         finalChunk.goalPreview = this.generateGoalPreview(commands);
         finalChunk.awaitingConfirmation = true;
         finalChunk.commands = commands;
-        // Extract proposalType from the first command's data
-        if (commands[0]?.data?.proposalType) {
-          finalChunk.proposalType = commands[0].data.proposalType;
-        }
+        // Use proposalType from command data if present, otherwise derive from command type
+        finalChunk.proposalType = commands[0]?.data?.proposalType || this.getProposalTypeForCommand(commands[0].type);
       }
 
       // Add assistant response to history

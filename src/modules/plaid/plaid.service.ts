@@ -90,9 +90,11 @@ export class PlaidService {
   async linkPlaidAccount(userId: string, publicToken: string): Promise<{
     accounts: Array<{
       id: string;
+      plaidAccountId: string;
       accountName: string;
       institutionName: string;
       accountMask: string;
+      mask: string;
       accountType: string;
       accountSubtype: string;
       currentBalance: number;
@@ -143,17 +145,29 @@ export class PlaidService {
       const savedAccounts = [];
 
       for (const account of accountsResponse.data.accounts) {
-        // Only save depository accounts (savings, checking)
-        if (account.type !== 'depository') {
-          this.logger.log(`Skipping ${account.type} account: ${account.name}`);
-          continue;
-        }
-
-        this.logger.log(`Saving depository account: ${account.name} (${account.mask})`);
+        this.logger.log(`Saving ${account.type} account: ${account.name} (${account.mask})`);
 
         try {
-          const plaidAccount = await this.prisma.plaidAccount.create({
-            data: {
+          // Upsert to prevent duplicates - use plaidAccountId as unique identifier
+          const plaidAccount = await this.prisma.plaidAccount.upsert({
+            where: {
+              plaidAccountId: account.account_id,
+            },
+            update: {
+              accessToken: access_token,
+              itemId: item_id,
+              institutionName: institution.name,
+              institutionId: itemResponse.data.item.institution_id || 'unknown',
+              accountName: account.name,
+              accountMask: account.mask,
+              accountType: account.type,
+              accountSubtype: account.subtype?.[0] || 'unknown',
+              currentBalance: account.balances.current || 0,
+              availableBalance: account.balances.available || null,
+              currency: account.balances.iso_currency_code || 'USD',
+              isActive: true, // Reactivate if previously soft-deleted
+            },
+            create: {
               userId,
               accessToken: access_token,
               itemId: item_id,
@@ -172,9 +186,11 @@ export class PlaidService {
 
           savedAccounts.push({
             id: plaidAccount.id,
+            plaidAccountId: plaidAccount.plaidAccountId,
             accountName: plaidAccount.accountName,
             institutionName: plaidAccount.institutionName,
             accountMask: plaidAccount.accountMask,
+            mask: plaidAccount.accountMask,
             accountType: plaidAccount.accountType,
             accountSubtype: plaidAccount.accountSubtype,
             currentBalance: plaidAccount.currentBalance,
@@ -248,7 +264,7 @@ export class PlaidService {
    * Get user's linked Plaid accounts
    */
   async getUserLinkedAccounts(userId: string) {
-    return this.prisma.plaidAccount.findMany({
+    const accounts = await this.prisma.plaidAccount.findMany({
       where: {
         userId,
         isActive: true,
@@ -259,6 +275,7 @@ export class PlaidService {
       // Don't return access tokens
       select: {
         id: true,
+        plaidAccountId: true,
         institutionName: true,
         accountName: true,
         accountMask: true,
@@ -271,6 +288,39 @@ export class PlaidService {
         createdAt: true,
       },
     });
+
+    // Map accountMask to mask for frontend compatibility
+    return accounts.map(account => ({
+      ...account,
+      mask: account.accountMask,
+    }));
+  }
+
+  /**
+   * Delete/unlink a Plaid account
+   */
+  async deleteAccount(userId: string, accountId: string) {
+    // Verify account belongs to user
+    const account = await this.prisma.plaidAccount.findFirst({
+      where: { id: accountId, userId },
+    });
+
+    if (!account) {
+      throw new BadRequestException('Account not found');
+    }
+
+    // Hard delete - remove account and associated transactions
+    await this.prisma.plaidTransaction.deleteMany({
+      where: { plaidAccountId: accountId },
+    });
+
+    await this.prisma.plaidAccount.delete({
+      where: { id: accountId },
+    });
+
+    this.logger.log(`Deleted account ${accountId} for user ${userId}`);
+
+    return { success: true };
   }
 
   /**

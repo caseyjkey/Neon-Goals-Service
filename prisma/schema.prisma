@@ -327,6 +327,8 @@ model PlaidAccount {
   // Relations
   transactions    PlaidTransaction[]
 
+  @@unique([plaidAccountId])
+
   @@index([userId])
   @@index([itemId])
   @@index([plaidAccountId])

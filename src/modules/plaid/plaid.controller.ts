@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Logger, Param, Query } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, UseGuards, Logger, Param, Query } from '@nestjs/common';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { PlaidService } from './plaid.service';
 import { CreateLinkTokenDto, ExchangePublicTokenDto } from './dto';
@@ -40,6 +40,16 @@ export class PlaidController {
   async getAccounts(@CurrentUser() user: User) {
     this.logger.log(`Get accounts request from user: ${user.id}`);
     return this.plaidService.getUserLinkedAccounts(user.id);
+  }
+
+  /**
+   * Delete/unlink a Plaid account
+   * DELETE /plaid/accounts/:accountId
+   */
+  @Delete('accounts/:accountId')
+  async deleteAccount(@CurrentUser() user: User, @Param('accountId') accountId: string) {
+    this.logger.log(`Delete account request from user: ${user.id} for account: ${accountId}`);
+    return this.plaidService.deleteAccount(user.id, accountId);
   }
 
   /**
