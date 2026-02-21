@@ -335,9 +335,9 @@ export class PlaidService {
       throw new BadRequestException('Plaid account not found');
     }
 
-    // Use at most 24 hours ago to avoid "datetime out of range" errors
+    // Use lastSync if recent, otherwise cap at 24h to avoid "datetime out of range" errors
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const minUpdateTime = account.lastSync < oneDayAgo ? account.lastSync : oneDayAgo;
+    const minUpdateTime = account.lastSync > oneDayAgo ? account.lastSync : oneDayAgo;
 
     const response = await this.plaidClient.accountsBalanceGet({
       access_token: account.accessToken,
@@ -512,9 +512,9 @@ export class PlaidService {
       throw new BadRequestException('Plaid account not found');
     }
 
-    // Use at most 24 hours ago to avoid "datetime out of range" errors
+    // Use lastSync if recent, otherwise cap at 24h to avoid "datetime out of range" errors
     const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    const minUpdateTime = account.lastSync < oneDayAgo ? account.lastSync : oneDayAgo;
+    const minUpdateTime = account.lastSync > oneDayAgo ? account.lastSync : oneDayAgo;
 
     const response = await this.plaidClient.accountsBalanceGet({
       access_token: account.accessToken,
