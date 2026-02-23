@@ -9,6 +9,11 @@ export interface RoutingResult {
   commands?: any[];
   routed: true;
   specialist: string;
+  extraction?: {
+    groupId: string;
+    urls: string[];
+    streamUrl: string;
+  };
 }
 
 @Injectable()
@@ -65,6 +70,7 @@ export class AgentRoutingService {
         commands: response.data.commands,
         routed: true,
         specialist: categoryId,
+        extraction: response.data.extraction,
       };
     } catch (error) {
       this.logger.error(

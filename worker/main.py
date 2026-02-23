@@ -6,10 +6,12 @@ import asyncio
 import time
 import aiohttp
 import requests
+import json
 from typing import Optional, Dict, Any
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, BackgroundTasks, Request, HTTPException
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 
 # Configure logging
 logging.basicConfig(
@@ -813,6 +815,250 @@ def run_single_scraper(
     return []
 
 
+# Request models for extract endpoint
+class ExtractRequest(BaseModel):
+    jobId: str
+    url: str
+    callbackUrl: str
+
+
+def run_extraction(job_id: str, url: str, callback_url: str) -> None:
+    """
+    Run Claude CLI to extract product data from a URL.
+
+    Spawns Claude CLI with chrome-devtools MCP to:
+    1. Navigate to the URL
+    2. Handle popups/cookie banners
+    3. Take a screenshot
+    4. Extract product info (name, price, image)
+
+    Sends progress updates to {callbackUrl}/progress and final result to {callbackUrl}.
+    """
+    logger.info(f"Starting extraction for job {job_id}: {url}")
+
+    extraction_prompt = f"""You are a product data extractor. Extract product info from this URL.
+
+URL: {url}
+
+Steps:
+1. Use chrome-devtools MCP to navigate to the URL
+2. Handle any popups, cookie banners, age verification by dismissing them
+3. Wait for the page to fully load (images visible)
+4. Take a screenshot of the page
+5. Analyze the screenshot to identify: product name, price, main product image
+6. Extract the main product image URL from the DOM
+7. Return ONLY valid JSON
+
+Return: {{"success": true, "name": "...", "price": 45.00, "imageUrl": "https://...", "currency": "USD"}}
+Or on error: {{"success": false, "error": "..."}}"""
+
+    # Send initial progress
+    try:
+        requests.post(
+            f"{callback_url}/progress",
+            json={"jobId": job_id, "status": "started", "message": "Starting extraction..."},
+            timeout=5
+        )
+    except Exception as e:
+        logger.warning(f"Failed to send progress update: {e}")
+
+    try:
+        # Create temporary MCP config for chrome-devtools
+        mcp_config = {
+            "mcpServers": {
+                "chrome-devtools": {
+                    "type": "stdio",
+                    "command": "npx",
+                    "args": ["-y", "chrome-devtools-mcp@latest", "--browserUrl", "http://10.0.0.237:9222"],
+                    "env": {}
+                }
+            }
+        }
+
+        # Write MCP config to temp file
+        mcp_config_path = f"/tmp/mcp-config-{job_id}.json"
+        with open(mcp_config_path, "w") as f:
+            json.dump(mcp_config, f)
+
+        # Build Claude CLI command with MCP config and allowed tools
+        claude_command = [
+            "claude",
+            "--print",  # Non-interactive mode
+            "--verbose",  # Required for stream-json output
+            "--output-format", "stream-json",
+            "--include-partial-messages",
+            "--mcp-config", mcp_config_path,
+            "--allowedTools", "mcp__chrome-devtools__*",
+            extraction_prompt
+        ]
+
+        logger.info(f"Running Claude CLI for job {job_id}")
+
+        # Set environment for Claude config
+        env = {
+            **os.environ,
+            "CLAUDE_CONFIG_DIR": "/home/alpha/.claude-zhipu",
+        }
+
+        # Run Claude CLI and stream output
+        process = subprocess.Popen(
+            claude_command,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            env=env
+        )
+
+        final_result = None
+        last_progress_time = time.time()
+
+        # Process streaming JSON output
+        for line in process.stdout:
+            line = line.strip()
+            if not line:
+                continue
+
+            try:
+                data = json.loads(line)
+
+                # Check for partial messages (progress updates)
+                if data.get("type") == "assistant" and "message" in data:
+                    content = data["message"].get("content", "")
+                    if content:
+                        # Send progress update (throttled to every 2 seconds)
+                        if time.time() - last_progress_time > 2:
+                            try:
+                                requests.post(
+                                    f"{callback_url}/progress",
+                                    json={
+                                        "jobId": job_id,
+                                        "status": "in_progress",
+                                        "message": content[:200]  # Truncate long messages
+                                    },
+                                    timeout=5
+                                )
+                                last_progress_time = time.time()
+                            except Exception as e:
+                                logger.warning(f"Failed to send progress update: {e}")
+
+                # Check for final result
+                if data.get("type") == "result":
+                    result_text = data.get("result", "")
+                    # Try to parse JSON from the result
+                    try:
+                        # Look for JSON in the response
+                        json_start = result_text.find("{")
+                        json_end = result_text.rfind("}") + 1
+                        if json_start != -1 and json_end > json_start:
+                            json_str = result_text[json_start:json_end]
+                            final_result = json.loads(json_str)
+                    except json.JSONDecodeError:
+                        logger.warning(f"Could not parse JSON from result: {result_text[:200]}")
+                        final_result = {"success": False, "error": "Failed to parse extraction result"}
+
+            except json.JSONDecodeError:
+                # Non-JSON line, skip
+                continue
+
+        # Wait for process to complete
+        process.wait(timeout=300)  # 5 minute timeout
+
+        if process.returncode != 0:
+            stderr = process.stderr.read()
+            logger.error(f"Claude CLI failed for job {job_id}: {stderr}")
+            final_result = {"success": False, "error": f"Claude CLI error: {stderr[:200]}"}
+
+        # Send final callback
+        if final_result is None:
+            final_result = {"success": False, "error": "No result from Claude CLI"}
+
+        logger.info(f"Extraction complete for job {job_id}: {final_result}")
+
+        send_callback_with_retry(
+            callback_url,
+            {
+                "jobId": job_id,
+                "status": "complete",
+                "result": final_result
+            }
+        )
+
+    except subprocess.TimeoutExpired:
+        logger.error(f"Extraction timeout for job {job_id}")
+        try:
+            send_callback_with_retry(
+                callback_url,
+                {
+                    "jobId": job_id,
+                    "status": "error",
+                    "result": {"success": False, "error": "Extraction timeout after 5 minutes"}
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to send timeout callback: {e}")
+
+    except Exception as e:
+        logger.error(f"Extraction failed for job {job_id}: {e}")
+        try:
+            send_callback_with_retry(
+                callback_url,
+                {
+                    "jobId": job_id,
+                    "status": "error",
+                    "result": {"success": False, "error": str(e)}
+                }
+            )
+        except Exception as e:
+            logger.error(f"Failed to send error callback: {e}")
+
+    finally:
+        # Cleanup temp MCP config file
+        mcp_config_path = f"/tmp/mcp-config-{job_id}.json"
+        if os.path.exists(mcp_config_path):
+            os.remove(mcp_config_path)
+            logger.debug(f"Cleaned up temp MCP config: {mcp_config_path}")
+
+
+@app.post("/extract")
+async def extract_product(
+    request: ExtractRequest,
+    background_tasks: BackgroundTasks
+):
+    """
+    Extract product data from a URL using Claude CLI with chrome-devtools MCP.
+
+    Accepts:
+        - jobId: Unique identifier for tracking
+        - url: URL to extract product data from
+        - callbackUrl: URL to receive progress updates and final result
+
+    The extraction runs in background and sends:
+        - Progress updates to {callbackUrl}/progress
+        - Final result to {callbackUrl}
+
+    Returns immediately with dispatch status.
+    """
+    job_id = request.jobId
+    url = request.url
+    callback_url = request.callbackUrl
+
+    logger.info(f"Dispatching extraction for job {job_id}: {url}")
+    logger.info(f"Callback URL: {callback_url}")
+
+    # Add background task to run extraction
+    background_tasks.add_task(
+        run_extraction,
+        job_id,
+        url,
+        callback_url
+    )
+
+    return {
+        "status": "dispatched",
+        "jobId": job_id
+    }
+
+
 @app.get("/")
 async def root():
     """Root endpoint with service information."""
@@ -824,6 +1070,7 @@ async def root():
             "health": "/health",
             "run_scraper": "/run/{scraper_name}",
             "run_all": "/run-all",
+            "extract": "/extract",
             "docs": "/docs"
         }
     }

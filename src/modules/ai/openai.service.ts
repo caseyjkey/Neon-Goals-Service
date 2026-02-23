@@ -739,6 +739,42 @@ ${message}`;
   }
 
   /**
+   * Detect if user is asking an item-related question that should route to the items specialist.
+   * This includes URLs, product links, and buying intentions.
+   */
+  private detectItemsIntent(message: string, goals: any[]): boolean {
+    // Check for URLs (product links)
+    const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g;
+    const hasUrls = urlRegex.test(message);
+
+    if (hasUrls) {
+      return true;
+    }
+
+    const lower = message.toLowerCase();
+
+    // Pattern matching for item-related queries
+    const itemsPatterns = [
+      /i want to (buy|get|purchase)/,
+      /looking (for|to buy)/,
+      /find(ing)? (a |an )?(new |used )?(car|truck|vehicle|product|item)/,
+      /compare.*(price|product|item)/,
+      /how much (is|does|for) (this|the|a|an)/,
+      /(product|item) link/,
+      /extract.*(product|item|price)/,
+    ];
+    const matchesPattern = itemsPatterns.some(p => p.test(lower));
+
+    // Item goal title matching
+    const itemGoals = goals.filter(g => g.type === 'item');
+    const referencesItemGoal = itemGoals.some(g =>
+      lower.includes(g.title.toLowerCase()),
+    );
+
+    return matchesPattern || referencesItemGoal;
+  }
+
+  /**
    * Route a message to a specialist and return the combined response.
    * Saves messages to the overview chat history.
    */
@@ -748,7 +784,7 @@ ${message}`;
     goals: any[],
     chatId: string,
     specialist: string,
-  ): Promise<{ content: string; commands?: any[]; routed?: boolean; specialist?: string }> {
+  ): Promise<{ content: string; commands?: any[]; routed?: boolean; specialist?: string; extraction?: any }> {
     if (!this.agentRoutingService) {
       this.logger.warn('AgentRoutingService not available, falling back to direct response');
       return { content: 'I\'d love to help with that financial question, but my finance specialist is currently unavailable. Please try the Finance Specialist chat directly.' };
@@ -769,6 +805,14 @@ ${message}`;
       .map(m => `${m.role}: ${typeof m.content === 'string' ? m.content.substring(0, 200) : ''}`)
       .join('\n');
 
+    // Specialist-specific configuration
+    const specialistConfig: Record<string, { name: string; indicator: string; fallbackChat: string }> = {
+      finances: { name: 'Wealth Advisor', indicator: 'Consulting your Wealth Advisor...', fallbackChat: 'Finance Specialist' },
+      items: { name: 'Items Specialist', indicator: 'Consulting your Items Specialist...', fallbackChat: 'Items Specialist' },
+      actions: { name: 'Actions Specialist', indicator: 'Consulting your Actions Specialist...', fallbackChat: 'Actions Specialist' },
+    };
+    const config = specialistConfig[specialist] || specialistConfig.items;
+
     try {
       // Route to specialist
       const result = await this.agentRoutingService.routeToSpecialist(
@@ -779,7 +823,7 @@ ${message}`;
       );
 
       // Prepend routing indicator to response
-      const content = `*Consulting your Wealth Advisor...*\n\n${result.content}`;
+      const content = `*${config.indicator}*\n\n${result.content}`;
 
       // Add to overview history
       history.messages.push({ role: 'user', content: message });
@@ -791,16 +835,23 @@ ${message}`;
         { role: 'assistant', content },
       ], chatId);
 
-      return {
+      const response: { content: string; commands?: any[]; routed?: boolean; specialist?: string; extraction?: any } = {
         content: this.cleanCommandsFromContent(content),
         commands: result.commands,
         routed: true,
         specialist,
       };
+
+      // Pass through extraction info if present (for items specialist)
+      if (result.extraction) {
+        response.extraction = result.extraction;
+      }
+
+      return response;
     } catch (error) {
       this.logger.error(`Specialist routing failed: ${error.message}`);
       return {
-        content: 'I tried consulting the Wealth Advisor but encountered an issue. You can ask your question directly in the Finance Specialist chat for the best response.',
+        content: `I tried consulting the ${config.name} but encountered an issue. You can ask your question directly in the ${config.fallbackChat} chat for the best response.`,
       };
     }
   }
@@ -1124,10 +1175,15 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
     message: string,
     goals: any[],
     chatId: string,
-  ): Promise<{ content: string; commands?: any[]; routed?: boolean; specialist?: string }> {
+  ): Promise<{ content: string; commands?: any[]; routed?: boolean; specialist?: string; extraction?: any }> {
     // Route finance questions to the wealth advisor
     if (this.detectFinanceIntent(message, goals)) {
       return this.handleSpecialistRouting(userId, message, goals, chatId, 'finances');
+    }
+
+    // Route item-related queries (URLs, product links) to the items specialist
+    if (this.detectItemsIntent(message, goals)) {
+      return this.handleSpecialistRouting(userId, message, goals, chatId, 'items');
     }
 
     // Use a special thread ID for overview chat
@@ -2139,6 +2195,29 @@ Be conversational, encouraging, and specific. Reference their actual goals in yo
         yield finalChunk;
       } catch (error) {
         yield { content: 'I tried consulting the Wealth Advisor but encountered an issue. Please try the Finance Specialist chat directly.', done: false };
+        yield { content: '', done: true };
+      }
+      return;
+    }
+
+    // Route item-related queries to the items specialist
+    if (this.detectItemsIntent(message, goals)) {
+      yield { content: '*Consulting your Items Specialist...*\n\n', done: false };
+      try {
+        const result = await this.handleSpecialistRouting(userId, message, goals, chatId, 'items');
+        // Strip the routing indicator since we already yielded it
+        const specialistContent = result.content.replace('*Consulting your Items Specialist...*\n\n', '');
+        yield { content: specialistContent, done: false };
+        const finalChunk: any = { content: '', done: true, routed: true, specialist: 'items' };
+        if (result.commands?.length) {
+          finalChunk.commands = result.commands;
+        }
+        if (result.extraction) {
+          finalChunk.extraction = result.extraction;
+        }
+        yield finalChunk;
+      } catch (error) {
+        yield { content: 'I tried consulting the Items Specialist but encountered an issue. Please try the Items Specialist chat directly.', done: false };
         yield { content: '', done: true };
       }
       return;

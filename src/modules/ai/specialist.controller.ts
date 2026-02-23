@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, UseGuards, Param, Res, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Get, Body, UseGuards, Param, Res, HttpStatus, Inject, forwardRef } from '@nestjs/common';
 import { Response } from 'express';
 import { OpenAIService } from './openai.service';
 import { PrismaService } from '../../config/prisma.service';
@@ -6,6 +6,7 @@ import { GoalCommandService } from './goal-command.service';
 import { ChatsService } from '../chats/chats.service';
 import { JwtOrApiKeyGuard } from '../../common/guards/jwt-or-api-key.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { ProductExtractionService } from '../extraction/product-extraction.service';
 
 /**
  * Category Specialist Chat Controller
@@ -23,7 +24,18 @@ export class SpecialistController {
     private prisma: PrismaService,
     private goalCommandService: GoalCommandService,
     private chatsService: ChatsService,
+    @Inject(forwardRef(() => ProductExtractionService))
+    private extractionService: ProductExtractionService,
   ) {}
+
+  /**
+   * Extract URLs from text
+   */
+  private extractUrls(text: string): string[] {
+    const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g;
+    const matches = text.match(urlRegex) || [];
+    return matches.map(url => url.replace(/[.,;:!?\)\]]+$/, ''));
+  }
 
   /**
    * Non-streaming chat with a category specialist
@@ -45,6 +57,24 @@ export class SpecialistController {
       return {
         error: `Invalid category. Must be one of: ${validCategories.join(', ')}`,
       };
+    }
+
+    // Check for URLs in the message (only for items category)
+    if (categoryId === 'items') {
+      const urls = this.extractUrls(body.message);
+      if (urls.length > 0) {
+        // Start extraction and return immediately
+        const groupId = await this.extractionService.extractFromUrls(urls, userId);
+
+        return {
+          content: `I found ${urls.length} product link${urls.length > 1 ? 's' : ''}! I'm extracting the product info now... 📦`,
+          extraction: {
+            groupId,
+            urls,
+            streamUrl: `/api/extraction/stream/${groupId}`,
+          },
+        };
+      }
     }
 
     // Get or create the category chat
@@ -123,6 +153,28 @@ export class SpecialistController {
     res.setHeader('X-Accel-Buffering', 'no');
 
     try {
+      // Check for URLs in the message (only for items category)
+      if (categoryId === 'items') {
+        const urls = this.extractUrls(body.message);
+        if (urls.length > 0) {
+          // Start extraction and return as a streaming response
+          const groupId = await this.extractionService.extractFromUrls(urls, userId);
+
+          // Send extraction info as a stream chunk
+          res.write(`data: ${JSON.stringify({
+            content: `I found ${urls.length} product link${urls.length > 1 ? 's' : ''}! I'm extracting the product info now... 📦`,
+            done: true,
+            extraction: {
+              groupId,
+              urls,
+              streamUrl: `/api/extraction/stream/${groupId}`,
+            },
+          })}\n\n`);
+          res.end();
+          return;
+        }
+      }
+
       // Get or create the category chat
       const chat = await this.chatsService.getOrCreateCategoryChat(userId, categoryId);
 

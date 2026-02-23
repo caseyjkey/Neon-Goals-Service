@@ -11,6 +11,7 @@ import { AiModule } from './modules/ai/ai.module';
 import { BrowserUseModule } from './modules/browser-use/browser-use.module';
 import { ScraperModule } from './modules/scraper/scraper.module';
 import { PlaidModule } from './modules/plaid/plaid.module';
+import { ExtractionModule } from './modules/extraction/extraction.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 
 @Module({
@@ -32,6 +33,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     BrowserUseModule,
     ScraperModule,
     PlaidModule,
+    ExtractionModule,
   ],
 })
 export class AppModule implements NestModule {

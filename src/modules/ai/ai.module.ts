@@ -17,9 +17,10 @@ import { ScraperModule } from '../scraper/scraper.module';
 import { ChatsModule } from '../chats/chats.module';
 import { AuthModule } from '../auth/auth.module';
 import { PlaidModule } from '../plaid/plaid.module';
+import { ExtractionModule } from '../extraction/extraction.module';
 
 @Module({
-  imports: [ConfigModule, PrismaModule, ScraperModule, forwardRef(() => ChatsModule), AuthModule, PlaidModule, HttpModule],
+  imports: [ConfigModule, PrismaModule, ScraperModule, forwardRef(() => ChatsModule), AuthModule, PlaidModule, HttpModule, ExtractionModule],
   controllers: [AiController, AiGoalChatController, AiOverviewController, SpecialistController],
   providers: [AiService, GoalCommandService, GoalModificationService, OpenAIService, ConversationSummaryService, AgentRoutingService, GreetingSummaryService, AiToolsService],
   exports: [AiService, GoalCommandService, GoalModificationService, OpenAIService, ConversationSummaryService, AgentRoutingService, GreetingSummaryService, AiToolsService],

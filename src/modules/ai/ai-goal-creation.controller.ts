@@ -147,7 +147,7 @@ export class AiOverviewController {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Send to overview agent
+    // Send to overview agent (which will route to specialists as needed)
     const result = await this.openaiService.overviewChat(
       userId,
       body.message,
@@ -160,11 +160,18 @@ export class AiOverviewController {
       ? await this.goalCommandService.executeCommands(userId, result.commands)
       : [];
 
-    return {
+    const response: any = {
       content: result.content,
       commands: result.commands,
       executedCommands,
     };
+
+    // Pass through extraction info if routed to items specialist
+    if (result.extraction) {
+      response.extraction = result.extraction;
+    }
+
+    return response;
   }
 
   /**
@@ -203,7 +210,7 @@ export class AiOverviewController {
         orderBy: { createdAt: 'desc' },
       });
 
-      // Stream response - pass through chunks from service
+      // Stream response - pass through chunks from service (which routes to specialists as needed)
       for await (const chunk of this.openaiService.overviewChatStream(
         userId,
         body.message,
