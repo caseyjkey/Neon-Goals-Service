@@ -5,8 +5,11 @@ set -e
 echo "Deploying worker to gilbert..."
 
 ssh gilbert << 'ENDSSH'
+set -e  # Exit on error inside heredoc
 cd /home/alpha/Development/Neon-Goals-Service
 echo "Pulling latest code..."
+# Stash any local changes before pulling
+git stash -q || true
 git pull
 
 echo "Restarting worker service..."
