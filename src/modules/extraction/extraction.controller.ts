@@ -9,6 +9,7 @@ import {
   UseGuards,
   Req,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { Observable, fromEvent, map, merge, of, interval } from 'rxjs';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { ProductExtractionService, ProgressData } from './product-extraction.service';
@@ -41,11 +42,15 @@ interface CreateGoalsDto {
 @Controller('extraction')
 export class ExtractionController {
   private readonly logger = new Logger(ExtractionController.name);
+  private readonly backendUrl: string;
 
   constructor(
     private extractionService: ProductExtractionService,
     private eventEmitter: EventEmitter2,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.backendUrl = this.configService.get<string>('BACKEND_URL', 'https://goals.keycasey.com');
+  }
 
   /**
    * Poll endpoint for worker to pull pending extraction jobs
@@ -63,8 +68,8 @@ export class ExtractionController {
       job: {
         id: job.id,
         url: job.url,
-        callbackUrl: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/extraction/callback`,
-        progressUrl: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/extraction/progress`,
+        callbackUrl: `${this.backendUrl}/api/extraction/callback`,
+        progressUrl: `${this.backendUrl}/api/extraction/progress`,
       }
     };
   }
