@@ -28,6 +28,7 @@ export class AiController {
       mode: body.mode,
       goalType: body.goalType,
       goalContext: body.goalContext,
+      userId,
     } as ChatRequest);
 
     return response;
@@ -54,6 +55,7 @@ export class AiController {
       mode: body.mode,
       goalType: body.goalType,
       goalContext: body.goalContext,
+      userId,
     };
 
     try {

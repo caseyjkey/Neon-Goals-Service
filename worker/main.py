@@ -34,6 +34,7 @@ async def poll_for_jobs():
     Background polling loop that periodically checks the backend for pending jobs.
     This avoids Tailscale TCP-over-DERP issues where backend can't connect to worker.
     Uses aiohttp for non-blocking async HTTP requests.
+    Polls for both scraper jobs and extraction jobs.
     """
     global should_poll
     poll_interval = 30  # seconds
@@ -44,7 +45,8 @@ async def poll_for_jobs():
         while should_poll:
             try:
                 logger.info("Polling for jobs...")
-                # Poll backend for pending jobs (async HTTP)
+
+                # 1. Poll for scraper jobs
                 async with session.post(
                     f"{BACKEND_API_URL}/api/scrapers/poll",
                     timeout=aiohttp.ClientTimeout(total=10)
@@ -60,7 +62,7 @@ async def poll_for_jobs():
                             retailer_filters = job.get("retailerFilters")
                             category = job.get("category", "general")
 
-                            logger.info(f"📋 Pulled job {job_id} for goal {goal_id}: {search_term}")
+                            logger.info(f"📋 Pulled scraper job {job_id} for goal {goal_id}: {search_term}")
 
                             if category == "vehicle":
                                 # Build callback URL (worker calls back to backend)
@@ -80,14 +82,49 @@ async def poll_for_jobs():
                             else:
                                 logger.warning(f"Unsupported category: {category}")
                     else:
-                        logger.warning(f"Poll failed with status {response.status}")
+                        logger.warning(f"Scraper poll failed with status {response.status}")
 
             except asyncio.TimeoutError:
-                logger.warning("Poll request timed out")
+                logger.warning("Scraper poll request timed out")
             except aiohttp.ClientError as e:
-                logger.error(f"Poll request failed: {e}")
+                logger.error(f"Scraper poll request failed: {e}")
             except Exception as e:
-                logger.error(f"Poll loop error: {e}")
+                logger.error(f"Scraper poll loop error: {e}")
+
+            # 2. Poll for extraction jobs
+            try:
+                async with session.post(
+                    f"{BACKEND_API_URL}/api/extraction/poll",
+                    timeout=aiohttp.ClientTimeout(total=10)
+                ) as response:
+                    if response.status in (200, 201):
+                        data = await response.json()
+                        job = data.get("job")
+
+                        if job:
+                            job_id = job.get("id")
+                            url = job.get("url")
+                            callback_url = job.get("callbackUrl")
+
+                            logger.info(f"📦 Pulled extraction job {job_id} for URL: {url}")
+
+                            # Run extraction in background
+                            asyncio.create_task(
+                                asyncio.to_thread(
+                                    run_extraction,
+                                    job_id=job_id,
+                                    url=url,
+                                    callback_url=callback_url
+                                )
+                            )
+                    else:
+                        logger.debug(f"Extraction poll: no pending jobs (status {response.status})")
+            except asyncio.TimeoutError:
+                logger.warning("Extraction poll request timed out")
+            except aiohttp.ClientError as e:
+                logger.error(f"Extraction poll request failed: {e}")
+            except Exception as e:
+                logger.error(f"Extraction poll loop error: {e}")
 
             # Wait before next poll
             await asyncio.sleep(poll_interval)

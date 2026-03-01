@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { Observable } from 'rxjs';
 import { fromEvent } from 'rxjs';
 import { EventEmitter } from 'events';
+import { ProductExtractionService } from '../extraction/product-extraction.service';
 
 export interface ChatMessage {
   role: 'system' | 'user' | 'assistant';
@@ -14,11 +15,17 @@ export interface ChatRequest {
   mode: 'creation' | 'goal';
   goalType?: 'item' | 'finance' | 'action';
   goalContext?: string;
+  userId?: string;
 }
 
 export interface ChatResponse {
   content: string;
   shouldEnterGoalCreation?: boolean;
+  extraction?: {
+    groupId: string;
+    urls: string[];
+    streamUrl: string;
+  };
 }
 
 export interface StreamChunk {
@@ -33,8 +40,22 @@ export class AiService {
   private readonly apiKey: string;
   private readonly apiUrl = 'https://api.z.ai/api/coding/paas/v4/chat/completions';
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    @Inject(forwardRef(() => ProductExtractionService))
+    private extractionService: ProductExtractionService,
+  ) {
     this.apiKey = this.configService.get<string>('GLM_API_KEY') || '';
+  }
+
+  /**
+   * Extract URLs from text
+   */
+  private extractUrls(text: string): string[] {
+    const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g;
+    const matches = text.match(urlRegex) || [];
+    // Clean up URLs (remove trailing punctuation)
+    return matches.map(url => url.replace(/[.,;:!?\)\]]+$/, ''));
   }
 
   /**
@@ -126,6 +147,32 @@ Help them build their vision step by step!`,
    * Send chat message to GLM 4.7 API
    */
   async chat(request: ChatRequest): Promise<ChatResponse> {
+    // Check for URLs in the last message
+    const lastMessage = request.messages[request.messages.length - 1]?.content || '';
+    const urls = this.extractUrls(lastMessage);
+
+    // If URLs found and userId provided, trigger extraction
+    if (urls.length > 0 && request.userId) {
+      this.logger.log(`Detected ${urls.length} URLs in message, starting extraction`);
+
+      try {
+        const groupId = await this.extractionService.extractFromUrls(urls, request.userId);
+
+        return {
+          content: `I found ${urls.length} product link${urls.length > 1 ? 's' : ''}! I'm extracting the product info now... 📦`,
+          shouldEnterGoalCreation: false,
+          extraction: {
+            groupId,
+            urls,
+            streamUrl: `/api/extraction/stream/${groupId}`,
+          },
+        };
+      } catch (error) {
+        this.logger.error('Failed to start extraction:', error);
+        // Fall through to normal chat
+      }
+    }
+
     const systemPrompt = this.getSystemPrompt(request.mode, request.goalType);
 
     const messages: ChatMessage[] = [

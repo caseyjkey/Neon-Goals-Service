@@ -40,15 +40,15 @@ export class ProductExtractionService {
 
   /**
    * Extract product information from multiple URLs
-   * Creates extraction jobs and dispatches them to the worker
+   * Creates extraction jobs - worker polls to pick them up
    * Returns a groupId for tracking the batch
    */
   async extractFromUrls(urls: string[], userId: string): Promise<string> {
     const groupId = uuidv4();
-    this.logger.log(`Starting extraction for ${urls.length} URLs (groupId: ${groupId})`);
+    this.logger.log(`Creating extraction jobs for ${urls.length} URLs (groupId: ${groupId})`);
 
     for (const url of urls) {
-      // Create extraction job
+      // Create extraction job - worker will poll and pick it up
       const job = await this.prisma.extractionJob.create({
         data: {
           url,
@@ -59,32 +59,36 @@ export class ProductExtractionService {
       });
 
       this.logger.log(`Created extraction job ${job.id} for URL: ${url}`);
-
-      // Dispatch to worker
-      try {
-        await firstValueFrom(
-          this.httpService.post(`${this.workerUrl}/extract`, {
-            jobId: job.id,
-            url,
-            callbackUrl: `${this.backendUrl}/api/extraction/callback`,
-            progressUrl: `${this.backendUrl}/api/extraction/progress`,
-          })
-        );
-        this.logger.log(`Dispatched job ${job.id} to worker`);
-      } catch (error) {
-        this.logger.error(`Failed to dispatch job ${job.id}: ${error.message}`);
-        // Update job status to failed
-        await this.prisma.extractionJob.update({
-          where: { id: job.id },
-          data: {
-            status: 'failed',
-            error: `Failed to dispatch to worker: ${error.message}`,
-          },
-        });
-      }
     }
 
     return groupId;
+  }
+
+  /**
+   * Get the next pending job for worker polling
+   * Returns job with URL and callback info, marks it as 'running'
+   */
+  async getNextPendingJob() {
+    const job = await this.prisma.extractionJob.findFirst({
+      where: {
+        status: 'pending',
+      },
+      orderBy: {
+        createdAt: 'asc',
+      },
+    });
+
+    if (!job) {
+      return null;
+    }
+
+    // Mark as running so no other worker picks it up
+    await this.prisma.extractionJob.update({
+      where: { id: job.id },
+      data: { status: 'running' },
+    });
+
+    return job;
   }
 
   /**

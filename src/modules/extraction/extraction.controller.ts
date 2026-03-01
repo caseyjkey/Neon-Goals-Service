@@ -48,6 +48,28 @@ export class ExtractionController {
   ) {}
 
   /**
+   * Poll endpoint for worker to pull pending extraction jobs
+   * Worker polls this endpoint instead of backend pushing to worker
+   */
+  @Post('poll')
+  async pollPendingJobs() {
+    this.logger.log('Worker polling for pending extraction jobs...');
+    const job = await this.extractionService.getNextPendingJob();
+    if (!job) {
+      return { job: null };
+    }
+    this.logger.log(`Found pending extraction job ${job.id} for URL: ${job.url}`);
+    return {
+      job: {
+        id: job.id,
+        url: job.url,
+        callbackUrl: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/extraction/callback`,
+        progressUrl: `${process.env.BACKEND_URL || 'http://localhost:3001'}/api/extraction/progress`,
+      }
+    };
+  }
+
+  /**
    * Callback endpoint for worker to report extraction results
    * Called by the worker when extraction completes
    */
